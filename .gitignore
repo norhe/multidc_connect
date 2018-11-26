@@ -1,0 +1,6 @@
+files/consul.zip
+files/vault.zip
+env.sh
+.terraform*
+terraform*
+.README*
