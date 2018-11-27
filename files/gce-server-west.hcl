@@ -22,6 +22,6 @@ autopilot         = {
 }
 node_meta = { },
 
-#connect = {
-#    enabled = true
-#}
+connect = {
+    enabled = true
+}
