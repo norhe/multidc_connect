@@ -2,7 +2,7 @@
 
 echo "Installing Docker"
 
-sudo apt-get update && sudo apt-get install docker.io
+DEBIAN_FRONTEND=noninteractive sudo apt-get update && DEBIAN_FRONTEND=noninteractive sudo apt-get --yes install docker.io
 
 echo "Extracting image..."
 

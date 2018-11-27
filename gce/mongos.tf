@@ -47,10 +47,10 @@ resource "google_compute_instance" "mongodb-east" {
     destination = "/tmp/client.hcl"
   }
 
-  #provisioner "file" {
-  #  source      = "../files/consul.zip"
-  #  destination = "/tmp/consul.zip"
-  #}
+  provisioner "file" {
+    source      = "../files/services/mongodb.hcl"
+    destination = "/tmp/mongodb.hcl"
+  }
 
   provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
@@ -76,6 +76,12 @@ resource "google_compute_instance" "mongodb-east" {
     source = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
+
+  provisioner "file" {
+    source      = "../files/install_envoy.sh"
+    destination = "/tmp/install_envoy.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "sleep 30",
@@ -89,6 +95,7 @@ resource "google_compute_instance" "mongodb-east" {
       "sleep 30",
       "sudo rm -rf /etc/consul/*",
       "sudo mv /tmp/client.hcl /etc/consul/client.hcl",
+      "sudo mv /tmp/mongodb.hcl /etc/consul/mongodb.hcl",
       "sudo systemctl restart consul",
       "sudo bash /tmp/use_dnsmasq.sh",
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",

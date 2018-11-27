@@ -47,6 +47,10 @@ resource "google_compute_instance" "listings-east" {
     destination = "/tmp/client.hcl"
   }
 
+  provisioner "file" {
+    source      = "../files/services/listing.hcl"
+    destination = "/tmp/listing.hcl"
+  }
    provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
     destination = "/tmp/use_dnsmasq.sh"
@@ -80,6 +84,7 @@ resource "google_compute_instance" "listings-east" {
       "sleep 30",
       "sudo rm -rf /etc/consul/*",
       "sudo mv /tmp/client.hcl /etc/consul/client.hcl",
+      "sudo mv /tmp/listing.hcl /etc/consul/listing.hcl",
       "sudo systemctl restart consul",
       "sudo bash /tmp/use_dnsmasq.sh",
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",

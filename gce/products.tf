@@ -47,6 +47,11 @@ resource "google_compute_instance" "products-east" {
     destination = "/tmp/client.hcl"
   }
 
+  provisioner "file" {
+    source      = "../files/services/product.hcl"
+    destination = "/tmp/product.hcl"
+  }
+
    provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
     destination = "/tmp/use_dnsmasq.sh"
@@ -63,8 +68,8 @@ resource "google_compute_instance" "products-east" {
   }
 
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
-    destination = "/tmp/credentials"
+    source      = "../files/install_envoy.sh"
+    destination = "/tmp/install_envoy.sh"
   }
 
   provisioner "remote-exec" {
@@ -80,6 +85,7 @@ resource "google_compute_instance" "products-east" {
       "sleep 30",
       "sudo rm -rf /etc/consul/*",
       "sudo mv /tmp/client.hcl /etc/consul/client.hcl",
+      "sudo mv /tmp/product.hcl /etc/consul/product.hcl",
       "sudo systemctl restart consul",
       "sudo bash /tmp/use_dnsmasq.sh",
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
