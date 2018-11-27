@@ -62,6 +62,11 @@ resource "google_compute_instance" "products-east" {
     destination = "/tmp/credentials"
   }
 
+  provisioner "file" {
+    source = "${var.aws_credentials_path}"
+    destination = "/tmp/credentials"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "sleep 30",
@@ -80,7 +85,8 @@ resource "google_compute_instance" "products-east" {
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
       "sudo systemctl restart dnsmasq",
       "git clone https://github.com/norhe/product-service.git",
-      "sudo bash product-service/install/install.sh"
+      "sudo bash product-service/install/install.sh",
+      "sudo bash /tmp/install_envoy.sh"
      ]
   }
 }

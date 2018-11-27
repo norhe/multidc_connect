@@ -58,6 +58,11 @@ resource "google_compute_instance" "listings-east" {
   }
   
   provisioner "file" {
+    source      = "../files/install_envoy.sh"
+    destination = "/tmp/install_envoy.sh"
+  }
+
+  provisioner "file" {
     source = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
@@ -80,7 +85,8 @@ resource "google_compute_instance" "listings-east" {
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
       "sudo systemctl restart dnsmasq",
       "git clone https://github.com/norhe/listing-service.git",
-      "sudo bash listing-service/install/install.sh"
+      "sudo bash listing-service/install/install.sh",
+      "sudo bash /tmp/install_envoy.sh"
      ]
   }
 }
