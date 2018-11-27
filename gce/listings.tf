@@ -81,6 +81,7 @@ resource "google_compute_instance" "listings-east" {
       "git clone https://github.com/norhe/hashinstaller.git",
       "sudo -E python3 hashinstaller/install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True",
       "sudo rm -rf ~/.aws",
+      "sudo python3 hashinstaller/install.py -p envconsul -v 0.7.3",
       "sleep 30",
       "sudo rm -rf /etc/consul/*",
       "sudo mv /tmp/client.hcl /etc/consul/client.hcl",
@@ -91,7 +92,7 @@ resource "google_compute_instance" "listings-east" {
       "sudo systemctl restart dnsmasq",
       "git clone https://github.com/norhe/listing-service.git",
       "sudo bash listing-service/install/install.sh",
-      "sudo bash /tmp/install_envoy.sh"
+      "sudo bash /tmp/install_envoy.sh listing"
      ]
   }
 }

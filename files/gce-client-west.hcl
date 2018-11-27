@@ -7,3 +7,6 @@ server           = false
 retry_join       = [
     "provider=gce project_name=eq-env tag_value=consul-server-west"
 ]
+ports            = {
+    grpc         = 8502
+}

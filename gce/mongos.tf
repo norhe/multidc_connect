@@ -101,7 +101,7 @@ resource "google_compute_instance" "mongodb-east" {
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
       "sudo systemctl restart dnsmasq",
       "sudo bash /tmp/install_mongodb.sh",
-      "sudo bash /tmp/install_envoy.sh"
+      "sudo bash /tmp/install_envoy.sh mongodb"
      ]
   }
 }
