@@ -6,7 +6,7 @@ resource "google_compute_instance" "servers-east" {
   zone         = "${data.google_compute_zones.east-azs.names[count.index]}"
 
   tags = [
-    "consul-server",
+    "consul-server-east",
   ]
 
   boot_disk {
@@ -39,7 +39,7 @@ resource "google_compute_instance" "servers-east" {
 
   connection {
     user  = "ehron"
-    private_key = "${file(var.key_path)}" # encrypted keys not supported, don't use
+    private_key = "${file(var.ssh_private_key_path)}" 
   }
   
   provisioner "file" {
@@ -62,16 +62,30 @@ resource "google_compute_instance" "servers-east" {
     destination = "/tmp/dnsmasq.conf"
   }
   
+  provisioner "file" {
+    source = "${var.aws_credentials_path}"
+    destination = "/tmp/credentials"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "sleep 30",
+      "DEBIAN_FRONTEND=noninteractive sudo apt-get update",
+      "DEBIAN_FRONTEND=noninteractive sudo apt-get install -y python3-pip",
+      "pip3 install botocore boto3 ",
+      "sudo mkdir ~/.aws && sudo cp -r /tmp/credentials ~/.aws/credentials",
       "git clone https://github.com/norhe/hashinstaller.git",
       #"sudo python3 hashinstaller/install.py -p consul -al /tmp/consul.zip",
-      "AWS_ACCESS_KEY_ID=${var.aws_key_id} AWS_SECRET_ACCESS_KEY={$var.aws_key} sudo -E python3 install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True",
+      #"echo 'AWS_ACCESS_KEY_ID=${var.aws_key_id} AWS_SECRET_ACCESS_KEY=${var.aws_key} sudo -E python3 hashinstaller/install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True'",
+      "sudo -E python3 hashinstaller/install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True",
+      "sudo rm -rf ~/.aws",
+      "sleep 30",
+      "sudo rm -rf /etc/consul/*",
       "sudo mv /tmp/server.hcl /etc/consul/server.hcl",
       "sudo systemctl restart consul",
+      "sudo bash /tmp/use_dnsmasq.sh",
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
-      "sudo bash /tmp/use_dnsmasq.sh"
+      "sudo systemctl restart dnsmasq"
      ]
   }
 }
@@ -84,7 +98,7 @@ resource "google_compute_instance" "servers-west" {
   zone         = "${data.google_compute_zones.west-azs.names[count.index]}"
 
   tags = [
-    "consul-server",
+    "consul-server-west",
   ]
 
   boot_disk {
@@ -102,7 +116,7 @@ resource "google_compute_instance" "servers-west" {
   }
 
   metadata {
-    sshKeys = "${var.ssh_user}:${var.ssh_public}"
+    sshKeys = "${var.ssh_user}:${var.ssh_public_key}"
   }
 
   lifecycle {
@@ -117,11 +131,11 @@ resource "google_compute_instance" "servers-west" {
 
   connection {
     user  = "ehron"
-    private_key = "${file(var.key_path)}" # encrypted keys not supported, don't use
+    private_key = "${file(var.ssh_private_key_path)}" 
   }
   
   provisioner "file" {
-    source      = "../files/gce-server-east.hcl"
+    source      = "../files/gce-server-west.hcl"
     destination = "/tmp/server.hcl"
   }
 
@@ -140,16 +154,28 @@ resource "google_compute_instance" "servers-west" {
     destination = "/tmp/dnsmasq.conf"
   }
   
+  provisioner "file" {
+    source = "${var.aws_credentials_path}"
+    destination = "/tmp/credentials"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "sleep 30",
+      "DEBIAN_FRONTEND=noninteractive sudo apt-get update",
+      "DEBIAN_FRONTEND=noninteractive sudo apt-get install -y python3-pip",
+      "pip3 install botocore boto3 ",
       "git clone https://github.com/norhe/hashinstaller.git",
       #"sudo python3 hashinstaller/install.py -p consul -al /tmp/consul.zip",
-      "AWS_ACCESS_KEY_ID=${var.aws_key_id} AWS_SECRET_ACCESS_KEY={$var.aws_key} sudo -E python3 install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True",
+      "sudo mkdir ~/.aws && sudo cp -r /tmp/credentials ~/.aws/credentials",
+      "sudo python3 hashinstaller/install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True",
+      "sudo rm -rf ~/.aws",
+      "sudo rm -rf /etc/consul/*",
       "sudo mv /tmp/server.hcl /etc/consul/server.hcl",
       "sudo systemctl restart consul",
+      "sudo bash /tmp/use_dnsmasq.sh",
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
-      "sudo bash /tmp/use_dnsmasq.sh"
+      "sudo systemctl restart dnsmasq"
      ]
   }
 }

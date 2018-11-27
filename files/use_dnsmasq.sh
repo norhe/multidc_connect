@@ -8,8 +8,8 @@ sudo rm /etc/resolv.conf
 
 echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
 
-sudo apt-get update
-sudo apt-get install dnsmasq
+DEBIAN_FRONTEND=noninteractive sudo apt-get update
+DEBIAN_FRONTEND=noninteractive sudo apt-get --yes install dnsmasq
 
 echo "nameserver 127.0.0.1 
 nameserver 8.8.8.8" |sudo tee /etc/resolv.conf

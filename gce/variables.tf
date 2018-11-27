@@ -3,7 +3,11 @@ variable "ssh_public_key" {
   description = "Contents of the public key"
 }
 
-variable "ssh_private_key" {
+variable "ssh_private_key_path" {
+  description = "Private key to use for provisioning"
+}
+
+variable "aws_credentials_path" {
   description = "Private key to use for provisioning"
 }
 
@@ -46,11 +50,11 @@ variable "servers_count" {
   default     = "3"
 }
 
-output "server_ips_1" {
+output "server_ips_east" {
   value = ["${google_compute_instance.servers-east.*.network_interface.0.access_config.0.assigned_nat_ip}"]
 }
 
-output "server_ips_2" {
+output "server_ips_west" {
   value = ["${google_compute_instance.servers-west.*.network_interface.0.access_config.0.assigned_nat_ip}"]
 }
 

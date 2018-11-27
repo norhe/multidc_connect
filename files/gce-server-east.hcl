@@ -8,7 +8,7 @@ ui                 = true
 non_voting_server  = false
 
 retry_join        = [
-    "provider=gce project_name=eq-env tag_value=consul-server"
+    "provider=gce project_name=eq-env tag_value=consul-server-east"
 ]
 
 autopilot         = {
