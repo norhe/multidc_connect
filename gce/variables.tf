@@ -67,6 +67,11 @@ variable "mongos_count" {
   default     = "1"
 }
 
+variable "web-clients_count" {
+  description = "How many listings servers to create in each region"
+  default     = "1"
+}
+
 output "server_ips_east" {
   value = ["${google_compute_instance.servers-east.*.network_interface.0.access_config.0.assigned_nat_ip}"]
 }
