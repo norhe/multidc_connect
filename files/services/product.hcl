@@ -26,14 +26,12 @@ service {
   connect = {
     sidecar_service = {
       proxy = {
-        config = {
-          upstreams = [
-            {
-              destination_name = "mongodb",
-              local_bind_port = 5001
-            }
-          ]
-        }
+        upstreams = [
+          {
+            destination_name = "mongodb",
+            local_bind_port = 5001
+          }
+        ]
       }
     }
   }

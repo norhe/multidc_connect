@@ -26,18 +26,16 @@ service {
   connect = {
     sidecar_service = {
       proxy = {
-        config = {
-          upstreams = [
-            {
-              destination_name = "listing",
-              local_bind_port = 10002
-            },
-            {
-              destination_name = "product"
-              local_bind_port  = 10001
-            }
-          ]
-        }
+        upstreams = [
+          {
+            destination_name = "listing",
+            local_bind_port = 10002
+          },
+          {
+            destination_name = "product"
+            local_bind_port  = 10001
+          }
+        ]
       }
     }
   }

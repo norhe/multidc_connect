@@ -10,6 +10,9 @@ echo "Extracting image..."
 
 sudo docker run --rm --entrypoint cat envoyproxy/envoy /usr/local/bin/envoy >/tmp/envoy
 
+DEBIAN_FRONTEND=noninteractive sudo apt-get --yes remove docker.io
+echo "Cleaning up docker..."
+
 sudo chmod a+x /tmp/envoy
 
 sudo mv /tmp/envoy /usr/local/bin/envoy

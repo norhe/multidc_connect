@@ -13,10 +13,12 @@ variable "aws_credentials_path" {
 
 variable "aws_key" {
   description = "The key data to use when downloading enterprise tools"
+  default = "Don't commit me to src control!"
 }
 
 variable "aws_key_id" {
   description = "The key id to use when downloading enterprise tools"
+  default = "Don't commit me to src control!"
 }
 
 variable "ssh_user" {
