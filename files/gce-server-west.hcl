@@ -25,3 +25,4 @@ node_meta = { },
 connect = {
     enabled = true
 }
+primary_datacenter = "east"
