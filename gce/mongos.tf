@@ -82,6 +82,11 @@ resource "google_compute_instance" "mongodb-east" {
     destination = "/tmp/install_envoy.sh"
   }
 
+  provisioner "file" {
+    source      = "../files/install_consul_proxy.sh"
+    destination = "/tmp/install_consul_proxy.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "sleep 30",
@@ -101,7 +106,14 @@ resource "google_compute_instance" "mongodb-east" {
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
       "sudo systemctl restart dnsmasq",
       "sudo bash /tmp/install_mongodb.sh",
-      "sudo bash /tmp/install_envoy.sh mongodb"
+      "sudo bash /tmp/install_envoy.sh mongodb",
+      "sudo systemctl disable envoy_proxy",
+      "sudo systemctl stop envoy_proxy", # bug with envoy and prepared queries so disable for now
+      "sleep 120",
+      "sudo bash /tmp/install_consul_proxy.sh mongodb",
+      "sudo systemctl restart consul",
+      "sleep 30",
+      "sudo systemctl restart consul_proxy"
      ]
   }
 }

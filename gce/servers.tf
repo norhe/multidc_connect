@@ -67,6 +67,11 @@ resource "google_compute_instance" "servers-east" {
     destination = "/tmp/credentials"
   }
 
+  provisioner "file" {
+    source      = "../files/seed_consul.sh"
+    destination = "/tmp/seed_consul.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "sleep 30",
@@ -85,7 +90,9 @@ resource "google_compute_instance" "servers-east" {
       "sudo systemctl restart consul",
       "sudo bash /tmp/use_dnsmasq.sh",
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
-      "sudo systemctl restart dnsmasq"
+      "sudo systemctl restart dnsmasq",
+      "sleep 45",
+      "bash /tmp/seed_consul.sh"
      ]
   }
 }
@@ -159,6 +166,11 @@ resource "google_compute_instance" "servers-west" {
     destination = "/tmp/credentials"
   }
 
+  provisioner "file" {
+    source      = "../files/seed_consul.sh"
+    destination = "/tmp/seed_consul.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "sleep 30",
@@ -175,7 +187,13 @@ resource "google_compute_instance" "servers-west" {
       "sudo systemctl restart consul",
       "sudo bash /tmp/use_dnsmasq.sh",
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
-      "sudo systemctl restart dnsmasq"
+      "sudo systemctl restart dnsmasq",
+      "sleep 60",
+      "consul join -wan [${join(" ", google_compute_instance.servers-east.*.network_interface.0.access_config.0.assigned_nat_ip)}",
+      "sleep 60",
+      "bash /tmp/seed_consul.sh",
+      "sleep 60",
+      "sudo systemctl restart consul",
      ]
   }
 }
