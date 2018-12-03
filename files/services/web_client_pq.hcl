@@ -28,12 +28,12 @@ service {
       proxy = {
         upstreams = [
           {
-            destination_name = "listing.query.consul",
+            destination_name = "listing",
             destination_type = "prepared_query",
             local_bind_port = 10002
           },
           {
-            destination_name = "product.query.consul",
+            destination_name = "product",
             destination_type = "prepared_query",
             local_bind_port  = 10001
           }

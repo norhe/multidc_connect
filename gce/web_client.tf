@@ -6,7 +6,7 @@ resource "google_compute_instance" "web-clients-east" {
   zone         = "${data.google_compute_zones.east-azs.names[count.index]}"
 
   tags = [
-    "consul-server-east",
+    "consul-east-dc",
   ]
 
   boot_disk {
@@ -96,8 +96,8 @@ resource "google_compute_instance" "web-clients-east" {
       "sudo rm -rf /etc/consul/*",
       "sudo mv /tmp/client.hcl /etc/consul/client.hcl",
       "sudo mv /tmp/web_client.hcl /etc/consul/web_client.hcl",
-      "sudo mv /tmp/web_client_pq.hcl /etc/consul/web_client_pq.hcl.disabled",
-      "sudo mv /tmp/web_client_svc.hcl /etc/consul/web_client_svc.hcl",
+      "sudo mv /tmp/web_client_pq.hcl /etc/consul/web_client_pq.hcl",
+      "sudo mv /tmp/web_client_svc.hcl /etc/consul/web_client_svc.hcl.disabled",
       "sudo systemctl restart consul",
       "sudo bash /tmp/use_dnsmasq.sh",
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
@@ -124,7 +124,7 @@ resource "google_compute_instance" "web-clients-west" {
   zone         = "${data.google_compute_zones.west-azs.names[count.index]}"
 
   tags = [
-    "consul-server-east",
+    "consul-west-dc",
   ]
 
   boot_disk {
@@ -213,8 +213,8 @@ resource "google_compute_instance" "web-clients-west" {
       "sleep 30",
       "sudo rm -rf /etc/consul/*",
       "sudo mv /tmp/client.hcl /etc/consul/client.hcl",
-      "sudo mv /tmp/web_client_pq.hcl /etc/consul/web_client_pq.hcl.disabled",
-      "sudo mv /tmp/web_client_svc.hcl /etc/consul/web_client_svc.hcl",
+      "sudo mv /tmp/web_client_pq.hcl /etc/consul/web_client_pq.hcl",
+      "sudo mv /tmp/web_client_svc.hcl /etc/consul/web_client_svc.hcl.disabled",
       "sudo systemctl restart consul",
       "sudo bash /tmp/use_dnsmasq.sh",
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",

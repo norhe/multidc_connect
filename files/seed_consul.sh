@@ -53,6 +53,7 @@ curl \
   "Name": "mongodb",
   "Service": {
     "Service": "mongodb",
+    "Connect": true,
     "Failover": {
       "NearestN": 2
     }
@@ -66,6 +67,7 @@ curl \
   "Name": "listing",
   "Service": {
     "Service": "listing",
+    "Connect": true,
     "Failover": {
       "NearestN": 2
     }
@@ -78,7 +80,8 @@ curl \
 '{
   "Name": "product",
   "Service": {
-    "Service": "mongodb",
+    "Service": "product",
+    "Connect": true,
     "Failover": {
       "NearestN": 2
     }
@@ -92,6 +95,7 @@ curl \
   "Name": "web_client",
   "Service": {
     "Service": "web_client",
+    "Connect": true,
     "Failover": {
       "NearestN": 2
     }

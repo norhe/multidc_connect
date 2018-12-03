@@ -6,7 +6,8 @@ resource "google_compute_instance" "servers-east" {
   zone         = "${data.google_compute_zones.east-azs.names[count.index]}"
 
   tags = [
-    "consul-server-east",
+    "consul-server",
+    "consul-east-dc"
   ]
 
   boot_disk {
@@ -105,7 +106,8 @@ resource "google_compute_instance" "servers-west" {
   zone         = "${data.google_compute_zones.west-azs.names[count.index]}"
 
   tags = [
-    "consul-server-west",
+    "consul-server",
+    "consul-west-dc"
   ]
 
   boot_disk {

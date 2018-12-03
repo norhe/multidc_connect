@@ -28,7 +28,7 @@ service {
       proxy = {
         upstreams = [
           {
-            destination_name = "mongodb.query.consul",
+            destination_name = "mongodb",
             destination_type = "prepared_query",
             local_bind_port = 8001
           }

@@ -13,6 +13,7 @@ Type=simple
 User=ubuntu
 ExecStart=/usr/local/bin/consul connect proxy -sidecar-for $SERVICE
 Restart=always
+SyslogIdentifier=consul_proxy
 [Install]
 WantedBy=multi-user.target
 EOF

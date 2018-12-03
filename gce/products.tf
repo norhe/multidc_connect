@@ -6,7 +6,7 @@ resource "google_compute_instance" "products-east" {
   zone         = "${data.google_compute_zones.east-azs.names[count.index]}"
 
   tags = [
-    "consul-server-east",
+    "consul-east-dc",
   ]
 
   boot_disk {
@@ -96,8 +96,8 @@ resource "google_compute_instance" "products-east" {
       "sleep 30",
       "sudo rm -rf /etc/consul/*",
       "sudo mv /tmp/client.hcl /etc/consul/client.hcl",
-      "sudo mv /tmp/product_pq.hcl /etc/consul/product_pq.hcl.disabled",
-      "sudo mv /tmp/product_svc.hcl /etc/consul/product_svc.hcl",
+      "sudo mv /tmp/product_pq.hcl /etc/consul/product_pq.hcl",
+      "sudo mv /tmp/product_svc.hcl /etc/consul/product_svc.hcl.disabled",
       "sudo systemctl restart consul",
       "sudo bash /tmp/use_dnsmasq.sh",
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
@@ -124,7 +124,7 @@ resource "google_compute_instance" "products-west" {
   zone         = "${data.google_compute_zones.west-azs.names[count.index]}"
 
   tags = [
-    "consul-server-west",
+    "consul-west-dc",
   ]
 
   boot_disk {
@@ -213,8 +213,8 @@ resource "google_compute_instance" "products-west" {
       "sleep 30",
       "sudo rm -rf /etc/consul/*",
       "sudo mv /tmp/client.hcl /etc/consul/client.hcl",
-      "sudo mv /tmp/product_pq.hcl /etc/consul/product_pq.hcl.disabled",
-      "sudo mv /tmp/product_svc.hcl /etc/consul/product_svc.hcl",
+      "sudo mv /tmp/product_pq.hcl /etc/consul/product_pq.hcl",
+      "sudo mv /tmp/product_svc.hcl /etc/consul/product_svc.hcl.disabled",
       "sudo systemctl restart consul",
       "sudo bash /tmp/use_dnsmasq.sh",
       "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
