@@ -26,7 +26,6 @@ resource "azurerm_subnet" "east-subnet" {
  address_prefix       = "10.0.3.0/24"
 }
 
-# Create Network Security Group and rule
 resource "azurerm_network_security_group" "west-sg" {
     name                = "west-sg"
     location            = "${azurerm_resource_group.west-rg.location}"
@@ -44,7 +43,29 @@ resource "azurerm_network_security_group" "west-sg" {
         destination_address_prefix = "*"
     }
 
-    tags {
-        environment = "Terraform Demo"
+    #tags {
+        #environment = "Terraform Demo"
+    #}
+}
+
+resource "azurerm_network_security_group" "east-sg" {
+    name                = "east-sg"
+    location            = "${azurerm_resource_group.east-rg.location}"
+    resource_group_name = "${azurerm_resource_group.east-rg.name}"
+
+    security_rule {
+        name                       = "SSH"
+        priority                   = 1001
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "22"
+        source_address_prefix      = "*"
+        destination_address_prefix = "*"
     }
+
+    #tags {
+    #    environment = "Terraform Demo"
+    #}
 }
