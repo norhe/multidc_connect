@@ -3,4 +3,6 @@ files/vault.zip
 env.sh
 .terraform*
 terraform*
-.README*
+.README
+*azure/remote.tf
+*.swp
