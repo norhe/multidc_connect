@@ -23,7 +23,7 @@ resource "google_compute_instance" "listings-east" {
     }
   }
 
-  metadata {
+  metadata = {
     sshKeys = "${var.ssh_user}:${var.ssh_public_key}"
   }
 
@@ -39,7 +39,9 @@ resource "google_compute_instance" "listings-east" {
 
   connection {
     user  = "ehron"
-    private_key = "${file(var.ssh_private_key_path)}" 
+    private_key = "${file(var.ssh_private_key_path)}"
+    type = "ssh"
+    host = "${self.network_interface.0.access_config.0.nat_ip}"
   }
   
   provisioner "file" {
@@ -104,9 +106,9 @@ resource "google_compute_instance" "listings-east" {
       "git clone https://github.com/norhe/listing-service.git",
       "sudo bash listing-service/install/install.sh",
       "sudo bash /tmp/install_envoy.sh listing",
-      "sudo systemctl disable envoy_proxy.service",
-      "sudo systemctl stop envoy_proxy.service", # bug with envoy and prepared queries so disable for now
-      "sudo bash /tmp/install_consul_proxy.sh listing",
+      #"sudo systemctl disable envoy_proxy.service",
+      #"sudo systemctl stop envoy_proxy.service", # bug with envoy and prepared queries so disable for now
+      #"sudo bash /tmp/install_consul_proxy.sh listing",
       "sleep 120",
       "sudo systemctl restart consul",
       "sleep 30",
@@ -140,7 +142,7 @@ resource "google_compute_instance" "listings-west" {
     }
   }
 
-  metadata {
+  metadata = {
     sshKeys = "${var.ssh_user}:${var.ssh_public_key}"
   }
 
@@ -157,6 +159,8 @@ resource "google_compute_instance" "listings-west" {
   connection {
     user  = "ehron"
     private_key = "${file(var.ssh_private_key_path)}" 
+    type = "ssh"
+    host = "${self.network_interface.0.access_config.0.nat_ip}"
   }
   
   provisioner "file" {
@@ -221,9 +225,9 @@ resource "google_compute_instance" "listings-west" {
       "git clone https://github.com/norhe/listing-service.git",
       "sudo bash listing-service/install/install.sh",
       "sudo bash /tmp/install_envoy.sh listing",
-      "sudo systemctl disable envoy_proxy.service",
-      "sudo systemctl stop envoy_proxy.service", # bug with envoy and prepared queries so disable for now
-      "sudo bash /tmp/install_consul_proxy.sh listing",
+      #"sudo systemctl disable envoy_proxy.service",
+      #"sudo systemctl stop envoy_proxy.service", # bug with envoy and prepared queries so disable for now
+      #"sudo bash /tmp/install_consul_proxy.sh listing",
       "sleep 120",
       "sudo systemctl restart consul",
       "sleep 30",

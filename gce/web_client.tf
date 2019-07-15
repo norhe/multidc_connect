@@ -23,7 +23,7 @@ resource "google_compute_instance" "web-clients-east" {
     }
   }
 
-  metadata {
+  metadata = {
     sshKeys = "${var.ssh_user}:${var.ssh_public_key}"
   }
 
@@ -40,6 +40,8 @@ resource "google_compute_instance" "web-clients-east" {
   connection {
     user  = "ehron"
     private_key = "${file(var.ssh_private_key_path)}" 
+    type = "ssh"
+    host = "${self.network_interface.0.access_config.0.nat_ip}"
   }
   
   provisioner "file" {
@@ -141,7 +143,7 @@ resource "google_compute_instance" "web-clients-west" {
     }
   }
 
-  metadata {
+  metadata = {
     sshKeys = "${var.ssh_user}:${var.ssh_public_key}"
   }
 
@@ -158,6 +160,8 @@ resource "google_compute_instance" "web-clients-west" {
   connection {
     user  = "ehron"
     private_key = "${file(var.ssh_private_key_path)}" 
+    type = "ssh"
+    host = "${self.network_interface.0.access_config.0.nat_ip}"
   }
   
   provisioner "file" {
