@@ -38,12 +38,12 @@ resource "google_compute_instance" "mongodb-east" {
   allow_stopping_for_update = true
 
   connection {
-    user  = "ehron"
+    user        = "ehron"
     private_key = "${file(var.ssh_private_key_path)}"
-    type = "ssh"
-    host = "${self.network_interface.0.access_config.0.nat_ip}" 
+    type        = "ssh"
+    host        = "${self.network_interface.0.access_config.0.nat_ip}"
   }
-  
+
   provisioner "file" {
     #source      = "../files/gce-client-east.hcl"
     content     = "${data.template_file.gce-client-east.rendered}"
@@ -64,9 +64,9 @@ resource "google_compute_instance" "mongodb-east" {
     source      = "../files/dnsmasq.conf"
     destination = "/tmp/dnsmasq.conf"
   }
-  
+
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
+    source      = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
 
@@ -76,7 +76,7 @@ resource "google_compute_instance" "mongodb-east" {
   }
 
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
+    source      = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
 
@@ -143,12 +143,12 @@ resource "google_compute_instance" "mongodb-west" {
   allow_stopping_for_update = true
 
   connection {
-    user  = "ehron"
+    user        = "ehron"
     private_key = "${file(var.ssh_private_key_path)}"
-    type = "ssh"
-    host = "${self.network_interface.0.access_config.0.nat_ip}"
+    type        = "ssh"
+    host        = "${self.network_interface.0.access_config.0.nat_ip}"
   }
-  
+
   provisioner "file" {
     #source      = "../files/gce-client-west.hcl"
     content     = "${data.template_file.gce-client-west.rendered}"
@@ -169,9 +169,9 @@ resource "google_compute_instance" "mongodb-west" {
     source      = "../files/dnsmasq.conf"
     destination = "/tmp/dnsmasq.conf"
   }
-  
+
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
+    source      = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
 
@@ -181,7 +181,7 @@ resource "google_compute_instance" "mongodb-west" {
   }
 
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
+    source      = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
 
@@ -204,6 +204,6 @@ resource "google_compute_instance" "mongodb-west" {
       "${var.use_dnsmasq}",
       "${var.install_mongodb_and_proxy}"
       #"${var.sync_envoy}"
-     ]
+    ]
   }
 }

@@ -38,12 +38,12 @@ resource "google_compute_instance" "listings-east" {
   allow_stopping_for_update = true
 
   connection {
-    user  = "ehron"
+    user        = "ehron"
     private_key = "${file(var.ssh_private_key_path)}"
-    type = "ssh"
-    host = "${self.network_interface.0.access_config.0.nat_ip}"
+    type        = "ssh"
+    host        = "${self.network_interface.0.access_config.0.nat_ip}"
   }
-  
+
   provisioner "file" {
     #source      = "../files/gce-client-east.hcl"
     content     = "${data.template_file.gce-client-east.rendered}"
@@ -59,7 +59,7 @@ resource "google_compute_instance" "listings-east" {
     source      = "../files/services/listing_svc.hcl"
     destination = "/tmp/listing_svc.hcl"
   }
-   provisioner "file" {
+  provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
     destination = "/tmp/use_dnsmasq.sh"
   }
@@ -68,7 +68,7 @@ resource "google_compute_instance" "listings-east" {
     source      = "../files/dnsmasq.conf"
     destination = "/tmp/dnsmasq.conf"
   }
-  
+
   provisioner "file" {
     source      = "../files/install_envoy.sh"
     destination = "/tmp/install_envoy.sh"
@@ -80,7 +80,7 @@ resource "google_compute_instance" "listings-east" {
   }
 
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
+    source      = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
 
@@ -93,7 +93,7 @@ resource "google_compute_instance" "listings-east" {
       "${var.use_dnsmasq}",
       "${var.install_listing_and_proxy}"
       #"${var.sync_envoy}",
-     ]
+    ]
   }
 }
 
@@ -137,12 +137,12 @@ resource "google_compute_instance" "listings-west" {
   allow_stopping_for_update = true
 
   connection {
-    user  = "ehron"
-    private_key = "${file(var.ssh_private_key_path)}" 
-    type = "ssh"
-    host = "${self.network_interface.0.access_config.0.nat_ip}"
+    user        = "ehron"
+    private_key = "${file(var.ssh_private_key_path)}"
+    type        = "ssh"
+    host        = "${self.network_interface.0.access_config.0.nat_ip}"
   }
-  
+
   provisioner "file" {
     #source      = "../files/gce-client-west.hcl"
     content     = "${data.template_file.gce-client-west.rendered}"
@@ -158,7 +158,7 @@ resource "google_compute_instance" "listings-west" {
     source      = "../files/services/listing_svc.hcl"
     destination = "/tmp/listing_svc.hcl"
   }
-   provisioner "file" {
+  provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
     destination = "/tmp/use_dnsmasq.sh"
   }
@@ -167,7 +167,7 @@ resource "google_compute_instance" "listings-west" {
     source      = "../files/dnsmasq.conf"
     destination = "/tmp/dnsmasq.conf"
   }
-  
+
   provisioner "file" {
     source      = "../files/install_envoy.sh"
     destination = "/tmp/install_envoy.sh"
@@ -179,7 +179,7 @@ resource "google_compute_instance" "listings-west" {
   }
 
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
+    source      = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
 
@@ -192,6 +192,6 @@ resource "google_compute_instance" "listings-west" {
       "${var.use_dnsmasq}",
       "${var.install_listing_and_proxy}"
       #"${var.sync_envoy}",
-     ]
+    ]
   }
 }

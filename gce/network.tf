@@ -1,20 +1,20 @@
 resource "google_compute_network" "app_network" {
-  name = "app-network"
+  name                    = "app-network"
   auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "east-subnet" {
-  name   = "east-subnet"
-  region = "${var.region_1}"
+  name          = "east-subnet"
+  region        = "${var.region_1}"
   ip_cidr_range = "10.3.0.0/16"
-  network = "${google_compute_network.app_network.self_link}"
+  network       = "${google_compute_network.app_network.self_link}"
 }
 
 resource "google_compute_subnetwork" "west-subnet" {
-  name   = "west-subnet"
-  region = "${var.region_2}"
+  name          = "west-subnet"
+  region        = "${var.region_2}"
   ip_cidr_range = "10.4.0.0/16"
-  network = "${google_compute_network.app_network.self_link}"
+  network       = "${google_compute_network.app_network.self_link}"
 }
 
 
@@ -25,7 +25,7 @@ resource "google_compute_firewall" "gcp-allow-traffic" {
 
   allow {
     protocol = "tcp"
-    ports = ["22", "80", "443", "8080"]
+    ports    = ["22", "80", "443", "8080"]
   }
 
   source_ranges = [
@@ -34,8 +34,8 @@ resource "google_compute_firewall" "gcp-allow-traffic" {
 }
 
 resource "google_compute_firewall" "allow-consul" {
-  name     = "hc-traffic"
-  network  = "${google_compute_network.app_network.self_link}"
+  name    = "hc-traffic"
+  network = "${google_compute_network.app_network.self_link}"
 
   allow {
     protocol = "tcp"
@@ -44,8 +44,8 @@ resource "google_compute_firewall" "allow-consul" {
 }
 
 resource "google_compute_firewall" "allow-consul-wan-east" {
-  name     = "consul-wan-east-1"
-  network  = "${google_compute_network.app_network.self_link}"
+  name    = "consul-wan-east-1"
+  network = "${google_compute_network.app_network.self_link}"
 
   allow {
     protocol = "udp"
@@ -54,8 +54,8 @@ resource "google_compute_firewall" "allow-consul-wan-east" {
 }
 
 resource "google_compute_firewall" "allow-internal" {
-  name     = "http-east-1"
-  network  = "${google_compute_network.app_network.self_link}"
+  name    = "http-east-1"
+  network = "${google_compute_network.app_network.self_link}"
 
   allow {
     protocol = "tcp"

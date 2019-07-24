@@ -13,12 +13,12 @@ variable "aws_credentials_path" {
 
 variable "aws_key" {
   description = "The key data to use when downloading enterprise tools"
-  default = "Don't commit me to src control!"
+  default     = "Don't commit me to src control!"
 }
 
 variable "aws_key_id" {
   description = "The key id to use when downloading enterprise tools"
-  default = "Don't commit me to src control!"
+  default     = "Don't commit me to src control!"
 }
 
 variable "ssh_user" {
@@ -73,8 +73,8 @@ variable "web-clients_count" {
 }
 
 variable "install_consul" {
-description = "The command to pass to the provisioner to install Hashicorp software"
-  default = <<-COMMAND
+  description = "The command to pass to the provisioner to install Hashicorp software"
+  default     = <<-COMMAND
       sleep 30
       cp /tmp/terraform_* ~/terrascript.sh
       DEBIAN_FRONTEND=noninteractive sudo apt-get update
@@ -91,7 +91,7 @@ description = "The command to pass to the provisioner to install Hashicorp softw
 }
 
 variable "install_envconsul" {
-description = "The command to pass to the provisioner to install Hashicorp software"
+  description = "The command to pass to the provisioner to install Hashicorp software"
   default = <<-COMMAND
     sudo python3 hashinstaller/install.py -p envconsul -v 0.8.0
     sleep 3
@@ -100,7 +100,7 @@ description = "The command to pass to the provisioner to install Hashicorp softw
 
 variable "set_consul_server_conf" {
   description = "Command to set up Consul servers with the proper config"
-  default = <<-COMMAND
+  default     = <<-COMMAND
       sudo rm -rf /etc/consul/*
       sudo mv /tmp/server.hcl /etc/consul/server.hcl
       sudo systemctl restart consul
@@ -121,7 +121,7 @@ variable "set_consul_client_conf" {
 # /**/
 variable "set_consul_listing_conf" {
   description = "Command to set up Consul agents with the proper config for listing service"
-  default = <<-COMMAND
+  default     = <<-COMMAND
       sudo mv /tmp/listing_pq.hcl /etc/consul/listing_pq.hcl
       sudo mv /tmp/listing_svc.hcl /etc/consul/listing_svc.hcl.disabled
       consul reload
@@ -139,7 +139,7 @@ variable "set_consul_product_conf" {
 
 variable "set_consul_web_client_conf" {
   description = "Command to set up Consul agents with the proper config for the web_client service"
-  default = <<-COMMAND
+  default     = <<-COMMAND
       sudo mv /tmp/web_client_pq.hcl /etc/consul/web_client_pq.hcl
       sudo mv /tmp/web_client_svc.hcl /etc/consul/web_client_svc.hcl.disabled
       consul reload
@@ -156,7 +156,7 @@ variable "set_consul_mongo_conf" {
 
 variable "sync_envoy" {
   description = "Push proxy config to Envoy"
-  default = <<-COMMAND
+  default     = <<-COMMAND
       sleep 15 # give time for the prepared queries to be created
       echo 'Restarting Consul' && sudo systemctl restart consul
   COMMAND

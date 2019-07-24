@@ -39,12 +39,12 @@ resource "google_compute_instance" "servers-east" {
   allow_stopping_for_update = true
 
   connection {
-    user  = "ehron"
+    user        = "ehron"
     private_key = "${file(var.ssh_private_key_path)}"
-    type = "ssh"
-    host = "${self.network_interface.0.access_config.0.nat_ip}"
+    type        = "ssh"
+    host        = "${self.network_interface.0.access_config.0.nat_ip}"
   }
-  
+
   provisioner "file" {
     #source      = "../files/gce-server-east.hcl"
     content     = "${data.template_file.gce-server-east.rendered}"
@@ -65,9 +65,9 @@ resource "google_compute_instance" "servers-east" {
     source      = "../files/dnsmasq.conf"
     destination = "/tmp/dnsmasq.conf"
   }
-  
+
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
+    source      = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
 
@@ -86,7 +86,7 @@ resource "google_compute_instance" "servers-east" {
       "bash /tmp/seed_consul.sh",
       "sleep 60",
       "sudo systemctl restart consul"
-     ]
+    ]
   }
 }
 
@@ -131,12 +131,12 @@ resource "google_compute_instance" "servers-west" {
   allow_stopping_for_update = true
 
   connection {
-    user  = "ehron"
+    user        = "ehron"
     private_key = "${file(var.ssh_private_key_path)}"
-    type = "ssh"
-    host = "${self.network_interface.0.access_config.0.nat_ip}"
+    type        = "ssh"
+    host        = "${self.network_interface.0.access_config.0.nat_ip}"
   }
-  
+
   provisioner "file" {
     #source      = "../files/gce-server-west.hcl"
     content     = "${data.template_file.gce-server-west.rendered}"
@@ -157,9 +157,9 @@ resource "google_compute_instance" "servers-west" {
     source      = "../files/dnsmasq.conf"
     destination = "/tmp/dnsmasq.conf"
   }
-  
+
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
+    source      = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
 
@@ -178,6 +178,6 @@ resource "google_compute_instance" "servers-west" {
       "bash /tmp/seed_consul.sh",
       "sleep 60",
       "sudo systemctl restart consul"
-     ]
+    ]
   }
 }

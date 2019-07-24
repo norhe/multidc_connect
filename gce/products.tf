@@ -38,12 +38,12 @@ resource "google_compute_instance" "products-east" {
   allow_stopping_for_update = true
 
   connection {
-    user  = "ehron"
+    user        = "ehron"
     private_key = "${file(var.ssh_private_key_path)}"
-    type = "ssh"
-    host = "${self.network_interface.0.access_config.0.nat_ip}"
+    type        = "ssh"
+    host        = "${self.network_interface.0.access_config.0.nat_ip}"
   }
-  
+
   provisioner "file" {
     #source      = "../files/gce-client-east.hcl"
     content     = "${data.template_file.gce-client-east.rendered}"
@@ -60,7 +60,7 @@ resource "google_compute_instance" "products-east" {
     destination = "/tmp/product_pq.hcl"
   }
 
-   provisioner "file" {
+  provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
     destination = "/tmp/use_dnsmasq.sh"
   }
@@ -69,9 +69,9 @@ resource "google_compute_instance" "products-east" {
     source      = "../files/dnsmasq.conf"
     destination = "/tmp/dnsmasq.conf"
   }
-  
+
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
+    source      = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
 
@@ -94,7 +94,7 @@ resource "google_compute_instance" "products-east" {
       "${var.use_dnsmasq}",
       "${var.install_product_and_proxy}"
       #"${var.sync_envoy}",
-     ]
+    ]
   }
 }
 
@@ -138,12 +138,12 @@ resource "google_compute_instance" "products-west" {
   allow_stopping_for_update = true
 
   connection {
-    user  = "ehron"
+    user        = "ehron"
     private_key = "${file(var.ssh_private_key_path)}"
-    type = "ssh"
-    host = "${self.network_interface.0.access_config.0.nat_ip}"
+    type        = "ssh"
+    host        = "${self.network_interface.0.access_config.0.nat_ip}"
   }
-  
+
   provisioner "file" {
     #source      = "../files/gce-client-west.hcl"
     content     = "${data.template_file.gce-client-west.rendered}"
@@ -159,7 +159,7 @@ resource "google_compute_instance" "products-west" {
     source      = "../files/services/product_pq.hcl"
     destination = "/tmp/product_pq.hcl"
   }
-   provisioner "file" {
+  provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
     destination = "/tmp/use_dnsmasq.sh"
   }
@@ -168,9 +168,9 @@ resource "google_compute_instance" "products-west" {
     source      = "../files/dnsmasq.conf"
     destination = "/tmp/dnsmasq.conf"
   }
-  
+
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
+    source      = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
 
@@ -193,6 +193,6 @@ resource "google_compute_instance" "products-west" {
       "${var.use_dnsmasq}",
       "${var.install_product_and_proxy}"
       #"${var.sync_envoy}"
-     ]
+    ]
   }
 }
