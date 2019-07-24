@@ -6,9 +6,9 @@ echo "Installing Docker"
 
 DEBIAN_FRONTEND=noninteractive sudo apt-get update && DEBIAN_FRONTEND=noninteractive sudo apt-get --yes install docker.io
 
-echo "Extracting image..."
+echo "Extracting Envoy executable..."
 
-sudo docker run --rm --entrypoint cat envoyproxy/envoy /usr/local/bin/envoy >/tmp/envoy
+sudo docker run --rm --entrypoint cat envoyproxy/envoy:v1.10.0 /usr/local/bin/envoy >/tmp/envoy
 
 DEBIAN_FRONTEND=noninteractive sudo apt-get --yes remove docker.io
 sudo ip link del docker0
@@ -18,7 +18,7 @@ sudo chmod a+x /tmp/envoy
 
 sudo mv /tmp/envoy /usr/local/bin/envoy
 
-consul connect envoy --bootstrap -sidecar-for $SERVICE >/tmp/envoy.conf
+consul connect envoy --admin-access-log-path /tmp/accesslog --bootstrap -sidecar-for $SERVICE >/tmp/envoy.conf
 
 sudo mkdir -p /etc/envoy
 sudo mv /tmp/envoy.conf /etc/envoy/envoy.conf

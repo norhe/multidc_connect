@@ -7,7 +7,7 @@ resource "google_compute_instance" "servers-east" {
 
   tags = [
     "consul-server",
-    "consul-east-dc"
+    "consul-east-gcp"
   ]
 
   boot_disk {
@@ -17,7 +17,7 @@ resource "google_compute_instance" "servers-east" {
   }
 
   network_interface {
-    network = "${data.google_compute_network.east-network.self_link}"
+    subnetwork = "${google_compute_subnetwork.east-subnet.self_link}"
 
     access_config {
       // ephemeral public IP
@@ -46,7 +46,8 @@ resource "google_compute_instance" "servers-east" {
   }
   
   provisioner "file" {
-    source      = "../files/gce-server-east.hcl"
+    #source      = "../files/gce-server-east.hcl"
+    content     = "${data.template_file.gce-server-east.rendered}"
     destination = "/tmp/server.hcl"
   }
 
@@ -77,25 +78,14 @@ resource "google_compute_instance" "servers-east" {
 
   provisioner "remote-exec" {
     inline = [
-      "sleep 30",
-      "DEBIAN_FRONTEND=noninteractive sudo apt-get update",
-      "DEBIAN_FRONTEND=noninteractive sudo apt-get install -y python3-pip",
-      "pip3 install botocore boto3 ",
-      "sudo mkdir ~/.aws && sudo cp -r /tmp/credentials ~/.aws/credentials",
-      "git clone https://github.com/norhe/hashinstaller.git",
-      #"sudo python3 hashinstaller/install.py -p consul -al /tmp/consul.zip",
-      #"echo 'AWS_ACCESS_KEY_ID=${var.aws_key_id} AWS_SECRET_ACCESS_KEY=${var.aws_key} sudo -E python3 hashinstaller/install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True'",
-      "sudo -E python3 hashinstaller/install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True",
-      "sudo rm -rf ~/.aws",
-      "sleep 30",
-      "sudo rm -rf /etc/consul/*",
-      "sudo mv /tmp/server.hcl /etc/consul/server.hcl",
-      "sudo systemctl restart consul",
-      "sudo bash /tmp/use_dnsmasq.sh",
-      "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
-      "sudo systemctl restart dnsmasq",
-      "sleep 45",
-      "bash /tmp/seed_consul.sh"
+      "${var.install_consul}",
+      "${var.install_envconsul}",
+      "${var.set_consul_server_conf}",
+      "${var.use_dnsmasq}",
+      "sleep 60",
+      "bash /tmp/seed_consul.sh",
+      "sleep 60",
+      "sudo systemctl restart consul"
      ]
   }
 }
@@ -109,7 +99,7 @@ resource "google_compute_instance" "servers-west" {
 
   tags = [
     "consul-server",
-    "consul-west-dc"
+    "consul-west-gcp"
   ]
 
   boot_disk {
@@ -119,7 +109,7 @@ resource "google_compute_instance" "servers-west" {
   }
 
   network_interface {
-    network = "${data.google_compute_network.east-network.self_link}"
+    subnetwork = "${google_compute_subnetwork.west-subnet.self_link}"
 
     access_config {
       // ephemeral public IP
@@ -148,7 +138,8 @@ resource "google_compute_instance" "servers-west" {
   }
   
   provisioner "file" {
-    source      = "../files/gce-server-west.hcl"
+    #source      = "../files/gce-server-west.hcl"
+    content     = "${data.template_file.gce-server-west.rendered}"
     destination = "/tmp/server.hcl"
   }
 
@@ -179,27 +170,14 @@ resource "google_compute_instance" "servers-west" {
 
   provisioner "remote-exec" {
     inline = [
-      "sleep 30",
-      "DEBIAN_FRONTEND=noninteractive sudo apt-get update",
-      "DEBIAN_FRONTEND=noninteractive sudo apt-get install -y python3-pip",
-      "pip3 install botocore boto3 ",
-      "git clone https://github.com/norhe/hashinstaller.git",
-      #"sudo python3 hashinstaller/install.py -p consul -al /tmp/consul.zip",
-      "sudo mkdir ~/.aws && sudo cp -r /tmp/credentials ~/.aws/credentials",
-      "sudo python3 hashinstaller/install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True",
-      "sudo rm -rf ~/.aws",
-      "sudo rm -rf /etc/consul/*",
-      "sudo mv /tmp/server.hcl /etc/consul/server.hcl",
-      "sudo systemctl restart consul",
-      "sudo bash /tmp/use_dnsmasq.sh",
-      "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
-      "sudo systemctl restart dnsmasq",
-      "sleep 60",
-      "consul join -wan [${join(" ", google_compute_instance.servers-east.*.network_interface.0.access_config.0.assigned_nat_ip)}",
+      "${var.install_consul}",
+      "${var.install_envconsul}",
+      "${var.set_consul_server_conf}",
+      "${var.use_dnsmasq}",
       "sleep 60",
       "bash /tmp/seed_consul.sh",
       "sleep 60",
-      "sudo systemctl restart consul",
+      "sudo systemctl restart consul"
      ]
   }
 }

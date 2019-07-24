@@ -16,7 +16,7 @@ resource "google_compute_instance" "web-clients-east" {
   }
 
   network_interface {
-    network = "${data.google_compute_network.east-network.self_link}"
+    subnetwork = "${google_compute_subnetwork.east-subnet.self_link}"
 
     access_config {
       // ephemeral public IP
@@ -45,7 +45,8 @@ resource "google_compute_instance" "web-clients-east" {
   }
   
   provisioner "file" {
-    source      = "../files/gce-client-east.hcl"
+    #source      = "../files/gce-client-east.hcl"
+    content     = "${data.template_file.gce-client-east.rendered}"
     destination = "/tmp/client.hcl"
   }
 
@@ -85,35 +86,13 @@ resource "google_compute_instance" "web-clients-east" {
 
   provisioner "remote-exec" {
     inline = [
-      "sleep 30",
-      "DEBIAN_FRONTEND=noninteractive sudo apt-get update",
-      "DEBIAN_FRONTEND=noninteractive sudo apt-get install -y python3-pip",
-      "pip3 install botocore boto3 ",
-      "sudo mkdir ~/.aws && sudo cp -r /tmp/credentials ~/.aws/credentials",
-      "git clone https://github.com/norhe/hashinstaller.git",
-      "sudo -E python3 hashinstaller/install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True",
-      "sudo rm -rf ~/.aws",
-      "sudo python3 hashinstaller/install.py -p envconsul -v 0.7.3",
-      "sleep 30",
-      "sudo rm -rf /etc/consul/*",
-      "sudo mv /tmp/client.hcl /etc/consul/client.hcl",
-      "sudo mv /tmp/web_client.hcl /etc/consul/web_client.hcl",
-      "sudo mv /tmp/web_client_pq.hcl /etc/consul/web_client_pq.hcl",
-      "sudo mv /tmp/web_client_svc.hcl /etc/consul/web_client_svc.hcl.disabled",
-      "sudo systemctl restart consul",
-      "sudo bash /tmp/use_dnsmasq.sh",
-      "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
-      "sudo systemctl restart dnsmasq",
-      "git clone https://github.com/norhe/simple-client.git",
-      "sudo bash simple-client/install/install.sh",
-      "sudo bash /tmp/install_envoy.sh web_client",
-      "sudo systemctl disable envoy_proxy",
-      "sudo systemctl stop envoy_proxy", # bug with envoy and prepared queries so disable for now
-      "sudo bash /tmp/install_consul_proxy.sh web_client",
-      "sleep 120", # give time for the prepared queries to be created
-      "sudo systemctl restart consul",
-      "sleep 30",
-      "sudo systemctl restart consul_proxy"
+      "${var.install_consul}",
+      "${var.set_consul_client_conf}",
+      "${var.set_consul_web_client_conf}",
+      "${var.install_envconsul}",
+      "${var.use_dnsmasq}",
+      "${var.install_web_client_and_proxy}"
+      #"${var.sync_envoy}"
      ]
   }
 }
@@ -136,7 +115,7 @@ resource "google_compute_instance" "web-clients-west" {
   }
 
   network_interface {
-    network = "${data.google_compute_network.east-network.self_link}"
+    subnetwork = "${google_compute_subnetwork.west-subnet.self_link}"
 
     access_config {
       // ephemeral public IP
@@ -165,7 +144,8 @@ resource "google_compute_instance" "web-clients-west" {
   }
   
   provisioner "file" {
-    source      = "../files/gce-client-west.hcl"
+    #source      = "../files/gce-client-west.hcl"
+    content     = "${data.template_file.gce-client-west.rendered}"
     destination = "/tmp/client.hcl"
   }
 
@@ -205,34 +185,13 @@ resource "google_compute_instance" "web-clients-west" {
 
   provisioner "remote-exec" {
     inline = [
-      "sleep 30",
-      "DEBIAN_FRONTEND=noninteractive sudo apt-get update",
-      "DEBIAN_FRONTEND=noninteractive sudo apt-get install -y python3-pip",
-      "pip3 install botocore boto3 ",
-      "sudo mkdir ~/.aws && sudo cp -r /tmp/credentials ~/.aws/credentials",
-      "git clone https://github.com/norhe/hashinstaller.git",
-      "sudo -E python3 hashinstaller/install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True",
-      "sudo rm -rf ~/.aws",
-      "sudo python3 hashinstaller/install.py -p envconsul -v 0.7.3",
-      "sleep 30",
-      "sudo rm -rf /etc/consul/*",
-      "sudo mv /tmp/client.hcl /etc/consul/client.hcl",
-      "sudo mv /tmp/web_client_pq.hcl /etc/consul/web_client_pq.hcl",
-      "sudo mv /tmp/web_client_svc.hcl /etc/consul/web_client_svc.hcl.disabled",
-      "sudo systemctl restart consul",
-      "sudo bash /tmp/use_dnsmasq.sh",
-      "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
-      "sudo systemctl restart dnsmasq",
-      "git clone https://github.com/norhe/simple-client.git",
-      "sudo bash simple-client/install/install.sh",
-      "sudo bash /tmp/install_envoy.sh web_client",
-      "sudo systemctl disable envoy_proxy",
-      "sudo systemctl stop envoy_proxy", # bug with envoy and prepared queries so disable for now
-      "sudo bash /tmp/install_consul_proxy.sh web_client",
-      "sleep 120", # give time for the prepared queries to be created
-      "sudo systemctl restart consul",
-      "sleep 30",
-      "sudo systemctl restart consul_proxy"
+      "${var.install_consul}",
+      "${var.set_consul_client_conf}",
+      "${var.set_consul_web_client_conf}",
+      "${var.install_envconsul}",
+      "${var.use_dnsmasq}",
+      "${var.install_web_client_and_proxy}"
+      #"${var.sync_envoy}"
      ]
   }
 }
