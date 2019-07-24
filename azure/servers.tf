@@ -16,7 +16,7 @@ resource "azurerm_network_interface" "servers-east-nic" {
   tags = {
     ehron-autojoin  = "${var.east_dc}"
     ehron-server-aj = "consul-server"
-    owner     = "ehron"
+    owner           = "ehron"
   }
 }
 
@@ -33,60 +33,60 @@ resource "azurerm_public_ip" "servers-east-publicip" {
 }
 
 resource "azurerm_virtual_machine" "servers-east" {
- count                 = "${var.servers_count}"
- name                  = "server-east-${count.index}"
- location              = "${azurerm_resource_group.east-rg.location}"
- resource_group_name   = "${azurerm_resource_group.east-rg.name}"
- network_interface_ids = ["${element(azurerm_network_interface.servers-east-nic.*.id, count.index)}"]
- vm_size               = "${var.server_machine_type}"
+  count                 = "${var.servers_count}"
+  name                  = "server-east-${count.index}"
+  location              = "${azurerm_resource_group.east-rg.location}"
+  resource_group_name   = "${azurerm_resource_group.east-rg.name}"
+  network_interface_ids = ["${element(azurerm_network_interface.servers-east-nic.*.id, count.index)}"]
+  vm_size               = "${var.server_machine_type}"
 
- # Uncomment this line to delete the OS disk automatically when deleting the VM
- delete_os_disk_on_termination = true
+  # Uncomment this line to delete the OS disk automatically when deleting the VM
+  delete_os_disk_on_termination = true
 
- # Uncomment this line to delete the data disks automatically when deleting the VM
- delete_data_disks_on_termination = true
+  # Uncomment this line to delete the data disks automatically when deleting the VM
+  delete_data_disks_on_termination = true
 
- storage_image_reference {
-   publisher = "Canonical"
-   offer     = "UbuntuServer"
-   sku       = "18.04-LTS"
-   version   = "latest"
- }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
 
- storage_os_disk {
-   name              = "servers-east-disk-${count.index}"
-   caching           = "ReadWrite"
-   create_option     = "FromImage"
-   managed_disk_type = "Standard_LRS"
- }
+  storage_os_disk {
+    name              = "servers-east-disk-${count.index}"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
 
   os_profile {
-   computer_name  = "server-east-${count.index}"
-   admin_username = "${var.ssh_user}"
-   admin_password = "${var.host_pw}"
- }
+    computer_name  = "server-east-${count.index}"
+    admin_username = "${var.ssh_user}"
+    admin_password = "${var.host_pw}"
+  }
 
   os_profile_linux_config {
     disable_password_authentication = false
     ssh_keys {
-      key_data     = "${var.ssh_public_key}"
-      path         = "/home/${var.ssh_user}/.ssh/authorized_keys"
+      key_data = "${var.ssh_public_key}"
+      path     = "/home/${var.ssh_user}/.ssh/authorized_keys"
     }
   }
 
   tags = {
     ehron-autojoin  = "${var.east_dc}"
     ehron-server-aj = "consul-server"
-    owner     = "ehron"
+    owner           = "ehron"
   }
 
   connection {
-    user  = "ehron"
+    user     = "ehron"
     password = "${var.host_pw}"
     #private_key = "${file(var.ssh_private_key_path)}"
     agent = false
-    type = "ssh"
-    host = "${element(azurerm_public_ip.servers-east-publicip.*.ip_address, count.index)}"
+    type  = "ssh"
+    host  = "${element(azurerm_public_ip.servers-east-publicip.*.ip_address, count.index)}"
   }
 
   provisioner "file" {
@@ -103,9 +103,9 @@ resource "azurerm_virtual_machine" "servers-east" {
     source      = "../files/dnsmasq.conf"
     destination = "/tmp/dnsmasq.conf"
   }
-  
+
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
+    source      = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
 
@@ -124,7 +124,7 @@ resource "azurerm_virtual_machine" "servers-east" {
       "bash /tmp/seed_consul.sh",
       "sleep 60",
       "sudo systemctl restart consul"
-     ]
+    ]
   }
 }
 
@@ -153,7 +153,7 @@ resource "azurerm_network_interface" "servers-west-nic" {
   tags = {
     ehron-autojoin  = "${var.west_dc}"
     ehron-server-aj = "consul-server"
-    owner     = "ehron"
+    owner           = "ehron"
   }
 }
 
@@ -169,61 +169,61 @@ resource "azurerm_public_ip" "servers-west-publicip" {
   }
 }
 
- resource "azurerm_virtual_machine" "servers-west" {
- count                 = "${var.servers_count}"
- name                  = "server-west-${count.index}"
- location              = "${azurerm_resource_group.west-rg.location}"
- resource_group_name   = "${azurerm_resource_group.west-rg.name}"
- network_interface_ids = ["${element(azurerm_network_interface.servers-west-nic.*.id, count.index)}"]
- vm_size               = "${var.server_machine_type}"
+resource "azurerm_virtual_machine" "servers-west" {
+  count                 = "${var.servers_count}"
+  name                  = "server-west-${count.index}"
+  location              = "${azurerm_resource_group.west-rg.location}"
+  resource_group_name   = "${azurerm_resource_group.west-rg.name}"
+  network_interface_ids = ["${element(azurerm_network_interface.servers-west-nic.*.id, count.index)}"]
+  vm_size               = "${var.server_machine_type}"
 
- # Uncomment this line to delete the OS disk automatically when deleting the VM
- delete_os_disk_on_termination = true
+  # Uncomment this line to delete the OS disk automatically when deleting the VM
+  delete_os_disk_on_termination = true
 
- # Uncomment this line to delete the data disks automatically when deleting the VM
- delete_data_disks_on_termination = true
+  # Uncomment this line to delete the data disks automatically when deleting the VM
+  delete_data_disks_on_termination = true
 
- storage_image_reference {
-   publisher = "Canonical"
-   offer     = "UbuntuServer"
-   sku       = "18.04-LTS"
-   version   = "latest"
- }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
 
- storage_os_disk {
-   name              = "servers-west-disk-${count.index}"
-   caching           = "ReadWrite"
-   create_option     = "FromImage"
-   managed_disk_type = "Standard_LRS"
- }
+  storage_os_disk {
+    name              = "servers-west-disk-${count.index}"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
 
   os_profile {
-   computer_name  = "server-west-${count.index}"
-   admin_username = "${var.ssh_user}"
-   admin_password = "${var.host_pw}"
- }
+    computer_name  = "server-west-${count.index}"
+    admin_username = "${var.ssh_user}"
+    admin_password = "${var.host_pw}"
+  }
 
   os_profile_linux_config {
     disable_password_authentication = false
     ssh_keys {
-      key_data     = "${var.ssh_public_key}"
-      path         = "/home/${var.ssh_user}/.ssh/authorized_keys"
+      key_data = "${var.ssh_public_key}"
+      path     = "/home/${var.ssh_user}/.ssh/authorized_keys"
     }
   }
 
   tags = {
     ehron-autojoin  = "${var.west_dc}"
     ehron-server-aj = "consul-server"
-    owner     = "ehron"
+    owner           = "ehron"
   }
 
   connection {
-    user  = "ehron"
+    user     = "ehron"
     password = "${var.host_pw}"
     #private_key = "${file(var.ssh_private_key_path)}"
     agent = false
-    type = "ssh"
-    host = "${element(azurerm_public_ip.servers-west-publicip.*.ip_address, count.index)}"
+    type  = "ssh"
+    host  = "${element(azurerm_public_ip.servers-west-publicip.*.ip_address, count.index)}"
   }
 
   provisioner "file" {
@@ -240,9 +240,9 @@ resource "azurerm_public_ip" "servers-west-publicip" {
     source      = "../files/dnsmasq.conf"
     destination = "/tmp/dnsmasq.conf"
   }
-  
+
   provisioner "file" {
-    source = "${var.aws_credentials_path}"
+    source      = "${var.aws_credentials_path}"
     destination = "/tmp/credentials"
   }
 
@@ -261,6 +261,6 @@ resource "azurerm_public_ip" "servers-west-publicip" {
       "bash /tmp/seed_consul.sh",
       "sleep 60",
       "sudo systemctl restart consul"
-     ]
+    ]
   }
 } 
