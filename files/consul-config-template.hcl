@@ -10,6 +10,8 @@ ports            = {
     grpc         = 8502
 }
 
+encrypt = "FJG/4lmkiF7tRtBZdBii3w==""
+
 # server
 server             = ${is_server}
 %{ if is_server }
@@ -40,6 +42,21 @@ connect = {
     enabled = ${connect_enabled}
 }
 primary_datacenter = "${primary_datacenter}"
+
+enable_central_service_config = true
+config_entries = {
+    bootstrap = {
+        kind = "proxy-defaults"
+        name = "global"
+        #config {
+          #envoy_prometheus_bind_addr = "0.0.0.0:9102"
+        #}
+        MeshGateway = {
+          Mode = "local"
+        }
+    }
+}
+
 %{ endif ~}
 
 %{ endif }
