@@ -1,13 +1,13 @@
 # Google
 provider "google" {
-  region = "${var.google_region_1}"
-  alias  = "east"
+  region  = "${var.google_region_1}"
+  alias   = "east"
   version = "~> 2.11"
 }
 
 provider "google" {
-  region = "${var.google_region_2}"
-  alias  = "west"
+  region  = "${var.google_region_2}"
+  alias   = "west"
   version = "~> 2.11"
 }
 
@@ -25,4 +25,10 @@ resource "azurerm_resource_group" "west-rg" {
 resource "azurerm_resource_group" "east-rg" {
   name     = "east-deployment"
   location = "East US"
+}
+
+# DNS
+provider "cloudflare" {
+  email = "${var.cf_email}"
+  token = "${var.cf_token}"
 }

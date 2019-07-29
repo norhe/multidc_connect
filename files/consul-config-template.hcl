@@ -8,9 +8,31 @@ retry_join       = [
 ]
 ports            = {
     grpc         = 8502
+    %{ if cert_file != "null" }    
+    #http  = 8500
+    #https = 8501
+    %{ endif ~}
 }
 
-encrypt = "FJG/4lmkiF7tRtBZdBii3w==""
+# encryption
+%{ if gossip_encrypt_key != "null" }
+encrypt = "${gossip_encrypt_key}"
+%{ endif ~}
+
+%{ if ca_file != "null" }
+#ca_file = "${ca_file}"
+%{ endif ~}
+
+%{ if cert_file != "null" }
+#cert_file = "${cert_file}"
+#key_file  = "${key_file}"
+
+#verify_incoming = true
+#verify_outgoing = true
+#auto_encrypt = {
+#    allow_tls = true
+#}
+%{ endif ~}
 
 # server
 server             = ${is_server}

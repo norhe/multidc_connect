@@ -1,8 +1,23 @@
 ## Google
+resource "google_compute_address" "servers-east" {
+  count  = "${var.servers_count}"
+  name   = "server-east-ipv4-address-${count.index + 1}"
+  region = "${var.google_region_1}"
+}
+
+resource "cloudflare_record" "servers-east-google" {
+  count  = "${var.servers_count}"
+  domain = "${var.cf_domain}"
+  name   = "server-east-google-${count.index + 1}.${var.cf_domain}"
+  value  = "${google_compute_instance.servers-east.*.network_interface.0.access_config.0.nat_ip[count.index]}"
+  type   = "A"
+}
+
 resource "google_compute_instance" "servers-east" {
   provider     = "google.east"
   count        = "${var.servers_count}"
-  name         = "server-east-${count.index + 1}"
+  name         = "server-east-google-${count.index + 1}"
+  hostname     = "server-east-google-${count.index + 1}.${var.cf_domain}"
   machine_type = "${var.google_server_machine_type}"
   zone         = "${data.google_compute_zones.east-azs.names[count.index]}"
 
@@ -21,7 +36,7 @@ resource "google_compute_instance" "servers-east" {
     subnetwork = "${google_compute_subnetwork.east-subnet.self_link}"
 
     access_config {
-      // ephemeral public IP
+      nat_ip = "${element(google_compute_address.servers-east.*.address, count.index)}"
     }
   }
 
@@ -81,8 +96,10 @@ resource "google_compute_instance" "servers-east" {
     inline = [
       "${var.install_consul}",
       "${var.install_envconsul}",
-      "${var.change_adver_addr_google}",
+      "${local.copy_cert_and_key}",
       "${var.set_consul_server_conf}",
+      "${var.change_adver_addr_google}",
+      "sudo systemctl restart consul",
       "${var.use_dnsmasq}",
       "sleep 60",
       "bash /tmp/seed_consul.sh",
@@ -92,10 +109,25 @@ resource "google_compute_instance" "servers-east" {
   }
 }
 
+resource "google_compute_address" "servers-west" {
+  count  = "${var.servers_count}"
+  name   = "server-east-ipv4-address-${count.index + 1}"
+  region = "${var.google_region_2}"
+}
+
+resource "cloudflare_record" "servers-west-google" {
+  count  = "${var.servers_count}"
+  domain = "${var.cf_domain}"
+  name   = "server-west-google-${count.index + 1}.${var.cf_domain}"
+  value  = "${google_compute_instance.servers-west.*.network_interface.0.access_config.0.nat_ip[count.index]}"
+  type   = "A"
+}
+
 resource "google_compute_instance" "servers-west" {
   provider     = "google.west"
   count        = "${var.servers_count}"
-  name         = "server-west-${count.index + 1}"
+  name         = "server-west-google-${count.index + 1}"
+  hostname     = "server-west-google-${count.index + 1}.${var.cf_domain}"
   machine_type = "${var.google_server_machine_type}"
   zone         = "${data.google_compute_zones.west-azs.names[count.index]}"
 
@@ -114,7 +146,7 @@ resource "google_compute_instance" "servers-west" {
     subnetwork = "${google_compute_subnetwork.west-subnet.self_link}"
 
     access_config {
-      // ephemeral public IP
+      nat_ip = "${element(google_compute_address.servers-west.*.address, count.index)}"
     }
   }
 
@@ -174,8 +206,10 @@ resource "google_compute_instance" "servers-west" {
     inline = [
       "${var.install_consul}",
       "${var.install_envconsul}",
-      "${var.change_adver_addr_google}",
+      "${local.copy_cert_and_key}",
       "${var.set_consul_server_conf}",
+      "${var.change_adver_addr_google}",
+      "sudo systemctl restart consul",
       "${var.use_dnsmasq}",
       "sleep 60",
       "bash /tmp/seed_consul.sh",
@@ -189,7 +223,7 @@ resource "google_compute_instance" "servers-west" {
 
 resource "azurerm_network_interface" "servers-east-nic" {
   count                     = "${var.servers_count}"
-  name                      = "servers-east-NIC-${count.index}"
+  name                      = "servers-east-NIC-${count.index + 1}"
   location                  = "${azurerm_resource_group.east-rg.location}"
   resource_group_name       = "${azurerm_resource_group.east-rg.name}"
   network_security_group_id = "${azurerm_network_security_group.east-sg.id}"
@@ -210,7 +244,7 @@ resource "azurerm_network_interface" "servers-east-nic" {
 
 resource "azurerm_public_ip" "servers-east-publicip" {
   count               = "${var.servers_count}"
-  name                = "servers-east-publicip-${count.index}"
+  name                = "servers-east-publicip-${count.index  + 1}"
   location            = "${azurerm_resource_group.east-rg.location}"
   resource_group_name = "${azurerm_resource_group.east-rg.name}"
   allocation_method   = "Static"
@@ -220,9 +254,17 @@ resource "azurerm_public_ip" "servers-east-publicip" {
   }
 }
 
+resource "cloudflare_record" "servers-east-azure" {
+  count  = "${var.servers_count}"
+  domain = "${var.cf_domain}"
+  name   = "server-east-azure-${count.index + 1}.${var.cf_domain}"
+  value  = "${azurerm_public_ip.servers-east-publicip.*.ip_address[count.index]}"
+  type   = "A"
+}
+
 resource "azurerm_virtual_machine" "servers-east" {
   count                 = "${var.servers_count}"
-  name                  = "server-east-${count.index}"
+  name                  = "server-east-azure-${count.index + 1}"
   location              = "${azurerm_resource_group.east-rg.location}"
   resource_group_name   = "${azurerm_resource_group.east-rg.name}"
   network_interface_ids = ["${element(azurerm_network_interface.servers-east-nic.*.id, count.index)}"]
@@ -242,14 +284,14 @@ resource "azurerm_virtual_machine" "servers-east" {
   }
 
   storage_os_disk {
-    name              = "servers-east-disk-${count.index}"
+    name              = "servers-east-disk-${count.index + 1}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
-    computer_name  = "server-east-${count.index}"
+    computer_name  = "server-east-azure-${count.index + 1}.${var.cf_domain}"
     admin_username = "${var.ssh_user}"
     admin_password = "${var.host_pw}"
   }
@@ -306,8 +348,10 @@ resource "azurerm_virtual_machine" "servers-east" {
     inline = [
       "${var.install_consul}",
       "${var.install_envconsul}",
-      "${var.change_adver_addr_azure}",
+      "${local.copy_cert_and_key}",
       "${var.set_consul_server_conf}",
+      "${var.change_adver_addr_azure}",
+      "sudo systemctl restart consul",
       "${var.use_dnsmasq}",
       "sleep 60",
       "bash /tmp/seed_consul.sh",
@@ -319,13 +363,13 @@ resource "azurerm_virtual_machine" "servers-east" {
 
 resource "azurerm_network_interface" "servers-west-nic" {
   count                     = "${var.servers_count}"
-  name                      = "servers-west-NIC-${count.index}"
+  name                      = "servers-west-NIC-${count.index + 1}"
   location                  = "${azurerm_resource_group.west-rg.location}"
   resource_group_name       = "${azurerm_resource_group.west-rg.name}"
   network_security_group_id = "${azurerm_network_security_group.west-sg.id}"
 
   ip_configuration {
-    name                          = "servers-west-NicConfiguration-${count.index}"
+    name                          = "servers-west-NicConfiguration-${count.index + 1}"
     subnet_id                     = "${azurerm_subnet.west-subnet.id}"
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${element(azurerm_public_ip.servers-west-publicip.*.id, count.index)}"
@@ -340,7 +384,7 @@ resource "azurerm_network_interface" "servers-west-nic" {
 
 resource "azurerm_public_ip" "servers-west-publicip" {
   count               = "${var.servers_count}"
-  name                = "servers-west-publicip-${count.index}"
+  name                = "servers-west-publicip-${count.index + 1}"
   location            = "${azurerm_resource_group.west-rg.location}"
   resource_group_name = "${azurerm_resource_group.west-rg.name}"
   allocation_method   = "Static"
@@ -350,9 +394,17 @@ resource "azurerm_public_ip" "servers-west-publicip" {
   }
 }
 
+resource "cloudflare_record" "servers-west-azure" {
+  count  = "${var.servers_count}"
+  domain = "${var.cf_domain}"
+  name   = "server-west-azure-${count.index + 1}.${var.cf_domain}"
+  value  = "${azurerm_public_ip.servers-west-publicip.*.ip_address[count.index]}"
+  type   = "A"
+}
+
 resource "azurerm_virtual_machine" "servers-west" {
   count                 = "${var.servers_count}"
-  name                  = "server-west-${count.index}"
+  name                  = "server-west-azure-${count.index + 1}"
   location              = "${azurerm_resource_group.west-rg.location}"
   resource_group_name   = "${azurerm_resource_group.west-rg.name}"
   network_interface_ids = ["${element(azurerm_network_interface.servers-west-nic.*.id, count.index)}"]
@@ -372,14 +424,14 @@ resource "azurerm_virtual_machine" "servers-west" {
   }
 
   storage_os_disk {
-    name              = "servers-west-disk-${count.index}"
+    name              = "servers-west-disk-${count.index + 1}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
-    computer_name  = "server-west-${count.index}"
+    computer_name  = "server-west-azure-${count.index + 1}.${var.cf_domain}"
     admin_username = "${var.ssh_user}"
     admin_password = "${var.host_pw}"
   }
@@ -436,8 +488,10 @@ resource "azurerm_virtual_machine" "servers-west" {
     inline = [
       "${var.install_consul}",
       "${var.install_envconsul}",
-      "${var.change_adver_addr_azure}",
+      "${local.copy_cert_and_key}",
       "${var.set_consul_server_conf}",
+      "${var.change_adver_addr_azure}",
+      "sudo systemctl restart consul",
       "${var.use_dnsmasq}",
       "sleep 60",
       "bash /tmp/seed_consul.sh",

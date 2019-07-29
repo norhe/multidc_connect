@@ -228,8 +228,8 @@ resource "azurerm_network_interface" "mongodb-east-nic" {
   }
 
   tags = {
-    ehron-autojoin  = "${var.azure_east_dc}"
-    owner           = "ehron"
+    ehron-autojoin = "${var.azure_east_dc}"
+    owner          = "ehron"
   }
 }
 
@@ -296,7 +296,7 @@ resource "azurerm_virtual_machine" "mongodb-east" {
     host  = "${element(azurerm_public_ip.mongodb-east-publicip.*.ip_address, count.index)}"
   }
 
-   provisioner "file" {
+  provisioner "file" {
     content     = "${data.template_file.azure-client-east.rendered}"
     destination = "/tmp/client.hcl"
   }
@@ -369,8 +369,8 @@ resource "azurerm_network_interface" "mongodb-west-nic" {
   }
 
   tags = {
-    ehron-autojoin  = "${var.azure_west_dc}"
-    owner           = "ehron"
+    ehron-autojoin = "${var.azure_west_dc}"
+    owner          = "ehron"
   }
 }
 
@@ -437,7 +437,7 @@ resource "azurerm_virtual_machine" "mongodb-west" {
     host  = "${element(azurerm_public_ip.mongodb-west-publicip.*.ip_address, count.index)}"
   }
 
-   provisioner "file" {
+  provisioner "file" {
     content     = "${data.template_file.azure-client-west.rendered}"
     destination = "/tmp/client.hcl"
   }

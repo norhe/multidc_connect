@@ -214,8 +214,8 @@ resource "azurerm_network_interface" "web-client-east-nic" {
   }
 
   tags = {
-    ehron-autojoin  = "${var.azure_east_dc}"
-    owner           = "ehron"
+    ehron-autojoin = "${var.azure_east_dc}"
+    owner          = "ehron"
   }
 }
 
@@ -350,8 +350,8 @@ resource "azurerm_network_interface" "web-client-west-nic" {
   }
 
   tags = {
-    ehron-autojoin  = "${var.azure_west_dc}"
-    owner           = "ehron"
+    ehron-autojoin = "${var.azure_west_dc}"
+    owner          = "ehron"
   }
 }
 

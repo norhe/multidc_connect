@@ -25,6 +25,48 @@ variable "ssh_user" {
   description = "Username of ssh user created with the ssh_key_data key"
 }
 
+variable "cf_email" {
+  description = "Email address for cloudflare DNS"
+}
+
+variable "cf_token_path" {
+  description = "Token for cloudflare DNS"
+}
+
+variable "cf_token" {
+  description = "Token for cloudflare DNS"
+}
+
+variable "cf_domain" {
+  description = "Domain for DNS"
+  default     = "example.com"
+}
+
+variable "gossip_encrypt_key" {
+  default = "null"
+}
+
+# RPC TLS
+variable "ca_file" {
+  default = "null"
+}
+
+variable "cert_file" {
+  default = "null"
+}
+
+variable "cert_file_contents" {
+  default = "null"
+}
+
+variable "key_file" {
+  default = "null"
+}
+
+variable "key_file_contents" {
+  default = "null"
+}
+
 # Optional
 
 # See https://www.consul.io/docs/agent/cloud-auto-join.html#microsoft-azure
@@ -115,6 +157,12 @@ variable "servers_count" {
   default     = "3"
 }
 
+variable "gateways_count" {
+  description = "How many gateways to create in each region"
+  default     = "1"
+}
+
+
 variable "listings_count" {
   description = "How many listings servers to create in each region"
   default     = "1"
@@ -141,12 +189,12 @@ variable "install_consul" {
       sleep 30
       cp /tmp/terraform_* ~/terrascript.sh
       DEBIAN_FRONTEND=noninteractive sudo apt-get update
-      DEBIAN_FRONTEND=noninteractive sudo apt-get install -y python3-pip
+      DEBIAN_FRONTEND=noninteractive sudo apt-get install -y python3-pip jq
       pip3 install botocore boto3
       sudo mkdir ~/.aws && sudo cp -r /tmp/credentials ~/.aws/credentials
       git clone https://github.com/norhe/hashinstaller.git
       #sudo -E python3 hashinstaller/install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True
-      sudo -E python3 hashinstaller/install.py -p consul -v 1.6.0 -loc 's3://hc-enterprise-binaries' -ie True -of 'consul-enterprise_1.6.0+prem-beta2_linux_amd64.zip'
+      sudo -E python3 hashinstaller/install.py -p consul -v 1.6.0 -loc 's3://hc-enterprise-binaries' -ie True -of 'consul-enterprise_1.6.0+prem-beta3_linux_amd64.zip'
       sudo rm -rf ~/.aws
       rm /tmp/credentials
       sleep 15
@@ -286,19 +334,28 @@ variable "install_listing_and_proxy" {
 
 variable "change_adver_addr_azure" {
   default = <<-COMMAND
-      echo "advertise_addr_wan = $(curl -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2019-06-04" |jq .network.interface[0].ipv4.ipAddress[0].publicIpAddress)" | sudo tee /etc/consul/advertise_addr.hcl
+      echo "advertise_addr_wan = $(curl -H Metadata:true 'http://169.254.169.254/metadata/instance?api-version=2019-06-04' |jq .network.interface[0].ipv4.ipAddress[0].publicIpAddress)" | sudo tee /etc/consul/advertise_addr.hcl
       echo "translate_wan_addrs = true" | sudo tee -a /etc/consul/advertise_addr.hcl 
   COMMAND
 }
 
 variable "change_adver_addr_google" {
   default = <<-COMMAND
-      echo "advertise_addr_wan = $(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip" |jq .network.interface[0].ipv4.ipAddress[0].publicIpAddress)" | sudo tee /etc/consul/advertise_addr.hcl
+      echo "advertise_addr_wan = \"$(curl -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip)\"" | sudo tee /etc/consul/advertise_addr.hcl
       echo "translate_wan_addrs = true" | sudo tee -a /etc/consul/advertise_addr.hcl 
   COMMAND
 }
 
-
+/*variable "copy_cert_and_key" {
+  description = "Upload TLS cert and key"
+  default     = <<-COMMAND
+      echo "${var.cert_file_contents} | sudo tee ${var.cert_file}"
+      echo "${var.key_file_contents} | sudo tee ${var.key_file}"
+      sudo chown root:root ${var.key_file}
+      sudo chmod 0600 ${var.key_file}
+      echo "Uploaded cert and key to ${var.cert_file} and ${var.key_file}"
+  COMMAND
+}*/
 
 variable "enable_central_service_config" {
   default = true
@@ -333,3 +390,14 @@ output "server_ips_west" {
 #output "vault_server_ips" {
 #  value = ["${google_compute_instance.vault-servers-east.*.network_interface.0.access_config.0.assigned_nat_ip}"]
 #}*/
+
+## locals
+locals {
+  copy_cert_and_key = <<-COMMAND
+    echo \"${file(var.cert_file_contents)}\" | sudo tee ${var.cert_file}
+    echo \"${file(var.key_file_contents)}\" | sudo tee ${var.key_file}
+    sudo chown root:root ${var.key_file}
+    sudo chmod 0600 ${var.key_file}
+    echo "Uploaded cert and key to ${var.cert_file} and ${var.key_file}"
+  COMMAND
+}

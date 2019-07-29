@@ -1,9 +1,24 @@
 ## Google
 
-resource "google_compute_instance" "products-east" {
+resource "google_compute_address" "gateways-google-east" {
+  count  = "${var.gateways_count}"
+  name   = "gateway-east-ipv4-address-${count.index + 1}"
+  region = "${var.google_region_1}"
+}
+
+resource "cloudflare_record" "gateway-east-google" {
+  count  = "${var.gateways_count}"
+  domain = "${var.cf_domain}"
+  name   = "gateway-east-google-${count.index + 1}.${var.cf_domain}"
+  value  = "${google_compute_instance.gateway-east.*.network_interface.0.access_config.0.nat_ip[count.index]}"
+  type   = "A"
+}
+
+resource "google_compute_instance" "gateway-east" {
   provider     = "google.east"
-  count        = "${var.products_count}"
-  name         = "product-east-${count.index + 1}"
+  count        = "${var.gateways_count}"
+  name         = "gateway-east-google-${count.index + 1}"
+  hostname     = "gateway-east-google-${count.index + 1}.${var.cf_domain}"
   machine_type = "${var.google_client_machine_type}"
   zone         = "${data.google_compute_zones.east-azs.names[count.index]}"
 
@@ -21,7 +36,7 @@ resource "google_compute_instance" "products-east" {
     subnetwork = "${google_compute_subnetwork.east-subnet.self_link}"
 
     access_config {
-      // ephemeral public IP
+      nat_ip = "${element(google_compute_address.gateways-google-east.*.address, count.index)}"
     }
   }
 
@@ -52,7 +67,7 @@ resource "google_compute_instance" "products-east" {
     destination = "/tmp/client.hcl"
   }
 
-  provisioner "file" {
+  /*provisioner "file" {
     source      = "../files/services/product_svc.hcl"
     destination = "/tmp/product_svc.hcl"
   }
@@ -60,7 +75,7 @@ resource "google_compute_instance" "products-east" {
   provisioner "file" {
     source      = "../files/services/product_pq.hcl"
     destination = "/tmp/product_pq.hcl"
-  }
+  }*/
 
   provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
@@ -90,20 +105,37 @@ resource "google_compute_instance" "products-east" {
   provisioner "remote-exec" {
     inline = [
       "${var.install_consul}",
+      "${local.copy_cert_and_key}",
       "${var.set_consul_client_conf}",
-      "${var.set_consul_product_conf}",
+      #"${var.set_consul_product_conf}",
       "${var.install_envconsul}",
       "${var.use_dnsmasq}",
-      "${var.install_product_and_proxy}"
-      #"${var.sync_envoy}",
+      #"${var.install_product_and_proxy}"
+      #"${var.install_gateway}",
+      "${var.sync_envoy}",
     ]
   }
 }
 
-resource "google_compute_instance" "products-west" {
+resource "google_compute_address" "gateways-google-west" {
+  count  = "${var.gateways_count}"
+  name   = "gateway-west-ipv4-address-${count.index + 1}"
+  region = "${var.google_region_2}"
+}
+
+resource "cloudflare_record" "gateway-west-google" {
+  count  = "${var.gateways_count}"
+  domain = "${var.cf_domain}"
+  name   = "gateway-west-google-${count.index + 1}.${var.cf_domain}"
+  value  = "${google_compute_instance.gateway-west.*.network_interface.0.access_config.0.nat_ip[count.index]}"
+  type   = "A"
+}
+
+resource "google_compute_instance" "gateway-west" {
   provider     = "google.west"
-  count        = "${var.products_count}"
-  name         = "product-west-${count.index + 1}"
+  count        = "${var.gateways_count}"
+  name         = "gateway-west-google${count.index + 1}"
+  hostname     = "gateway-west-google${count.index + 1}.${var.cf_domain}"
   machine_type = "${var.google_client_machine_type}"
   zone         = "${data.google_compute_zones.west-azs.names[count.index]}"
 
@@ -121,7 +153,7 @@ resource "google_compute_instance" "products-west" {
     subnetwork = "${google_compute_subnetwork.west-subnet.self_link}"
 
     access_config {
-      // ephemeral public IP
+      nat_ip = "${element(google_compute_address.gateways-google-west.*.address, count.index)}"
     }
   }
 
@@ -152,7 +184,7 @@ resource "google_compute_instance" "products-west" {
     destination = "/tmp/client.hcl"
   }
 
-  provisioner "file" {
+  /*provisioner "file" {
     source      = "../files/services/product_svc.hcl"
     destination = "/tmp/product_svc.hcl"
   }
@@ -160,7 +192,8 @@ resource "google_compute_instance" "products-west" {
   provisioner "file" {
     source      = "../files/services/product_pq.hcl"
     destination = "/tmp/product_pq.hcl"
-  }
+  }*/
+
   provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
     destination = "/tmp/use_dnsmasq.sh"
@@ -189,30 +222,31 @@ resource "google_compute_instance" "products-west" {
   provisioner "remote-exec" {
     inline = [
       "${var.install_consul}",
+      "${local.copy_cert_and_key}",
       "${var.set_consul_client_conf}",
-      "${var.set_consul_product_conf}",
+      //"${var.set_consul_product_conf}",
       "${var.install_envconsul}",
       "${var.use_dnsmasq}",
-      "${var.install_product_and_proxy}"
-      #"${var.sync_envoy}"
+      //"${var.install_product_and_proxy}"
+      "${var.sync_envoy}"
     ]
   }
 }
 
 ## Azure
 
-resource "azurerm_network_interface" "product-east-nic" {
-  count                     = "${var.products_count}"
-  name                      = "product-east-NIC-${count.index}"
+resource "azurerm_network_interface" "gateway-east-nic" {
+  count                     = "${var.gateways_count}"
+  name                      = "gateway-east-NIC-${count.index + 1}"
   location                  = "${azurerm_resource_group.east-rg.location}"
   resource_group_name       = "${azurerm_resource_group.east-rg.name}"
   network_security_group_id = "${azurerm_network_security_group.east-sg.id}"
 
   ip_configuration {
-    name                          = "product-east-NicConfiguration-${count.index}"
+    name                          = "gateway-east-NicConfiguration-${count.index + 1}"
     subnet_id                     = "${azurerm_subnet.east-subnet.id}"
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = "${element(azurerm_public_ip.product-east-publicip.*.id, count.index)}"
+    public_ip_address_id          = "${element(azurerm_public_ip.gateway-east-publicip.*.id, count.index)}"
   }
 
   tags = {
@@ -221,9 +255,9 @@ resource "azurerm_network_interface" "product-east-nic" {
   }
 }
 
-resource "azurerm_public_ip" "product-east-publicip" {
-  count               = "${var.products_count}"
-  name                = "product-east-publicip-${count.index}"
+resource "azurerm_public_ip" "gateway-east-publicip" {
+  count               = "${var.gateways_count}"
+  name                = "gateway-east-publicip-${count.index + 1}"
   location            = "${azurerm_resource_group.east-rg.location}"
   resource_group_name = "${azurerm_resource_group.east-rg.name}"
   allocation_method   = "Static"
@@ -233,12 +267,20 @@ resource "azurerm_public_ip" "product-east-publicip" {
   }
 }
 
-resource "azurerm_virtual_machine" "product-east" {
-  count                 = "${var.products_count}"
-  name                  = "product-east-${count.index}"
+resource "cloudflare_record" "gateway-east-azure" {
+  count  = "${var.gateways_count}"
+  domain = "${var.cf_domain}"
+  name   = "gateway-east-azure-${count.index + 1}.${var.cf_domain}"
+  value  = "${azurerm_public_ip.gateway-east-publicip.*.ip_address[count.index]}"
+  type   = "A"
+}
+
+resource "azurerm_virtual_machine" "gateways-azure-east" {
+  count                 = "${var.gateways_count}"
+  name                  = "gateway-east-azure-${count.index + 1}"
   location              = "${azurerm_resource_group.east-rg.location}"
   resource_group_name   = "${azurerm_resource_group.east-rg.name}"
-  network_interface_ids = ["${element(azurerm_network_interface.product-east-nic.*.id, count.index)}"]
+  network_interface_ids = ["${element(azurerm_network_interface.gateway-east-nic.*.id, count.index)}"]
   vm_size               = "${var.azure_client_machine_type}"
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
@@ -255,14 +297,14 @@ resource "azurerm_virtual_machine" "product-east" {
   }
 
   storage_os_disk {
-    name              = "product-east-disk-${count.index}"
+    name              = "gateway-east-disk-${count.index + 1}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
-    computer_name  = "product-east-${count.index}"
+    computer_name  = "gateway-east-azure-${count.index + 1}.${var.cf_domain}"
     admin_username = "${var.ssh_user}"
     admin_password = "${var.host_pw}"
   }
@@ -281,7 +323,7 @@ resource "azurerm_virtual_machine" "product-east" {
     #private_key = "${file(var.ssh_private_key_path)}"
     agent = false
     type  = "ssh"
-    host  = "${element(azurerm_public_ip.product-east-publicip.*.ip_address, count.index)}"
+    host  = "${element(azurerm_public_ip.gateway-east-publicip.*.ip_address, count.index)}"
   }
 
   provisioner "file" {
@@ -290,7 +332,7 @@ resource "azurerm_virtual_machine" "product-east" {
   }
 
 
-  provisioner "file" {
+  /*provisioner "file" {
     source      = "../files/services/product_svc.hcl"
     destination = "/tmp/product_svc.hcl"
   }
@@ -298,7 +340,7 @@ resource "azurerm_virtual_machine" "product-east" {
   provisioner "file" {
     source      = "../files/services/product_pq.hcl"
     destination = "/tmp/product_pq.hcl"
-  }
+  }*/
 
   provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
@@ -328,29 +370,30 @@ resource "azurerm_virtual_machine" "product-east" {
   provisioner "remote-exec" {
     inline = [
       "${var.install_consul}",
+      "${local.copy_cert_and_key}",
       "${var.set_consul_client_conf}",
-      "${var.set_consul_product_conf}",
+      //"${var.set_consul_product_conf}",
       "${var.install_envconsul}",
       "${var.use_dnsmasq}",
-      "${var.install_product_and_proxy}"
-      #"${var.sync_envoy}",
+      //"${var.install_product_and_proxy}"
+      "${var.sync_envoy}",
     ]
   }
 }
 
 
-resource "azurerm_network_interface" "product-west-nic" {
-  count                     = "${var.products_count}"
-  name                      = "product-west-NIC-${count.index}"
+resource "azurerm_network_interface" "gateway-west-nic" {
+  count                     = "${var.gateways_count}"
+  name                      = "gateway-west-NIC-${count.index + 1}"
   location                  = "${azurerm_resource_group.west-rg.location}"
   resource_group_name       = "${azurerm_resource_group.west-rg.name}"
   network_security_group_id = "${azurerm_network_security_group.west-sg.id}"
 
   ip_configuration {
-    name                          = "product-west-NicConfiguration-${count.index}"
+    name                          = "gateway-west-NicConfiguration-${count.index + 1}"
     subnet_id                     = "${azurerm_subnet.west-subnet.id}"
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = "${element(azurerm_public_ip.product-west-publicip.*.id, count.index)}"
+    public_ip_address_id          = "${element(azurerm_public_ip.gateway-west-publicip.*.id, count.index)}"
   }
 
   tags = {
@@ -359,9 +402,9 @@ resource "azurerm_network_interface" "product-west-nic" {
   }
 }
 
-resource "azurerm_public_ip" "product-west-publicip" {
-  count               = "${var.products_count}"
-  name                = "product-west-publicip-${count.index}"
+resource "azurerm_public_ip" "gateway-west-publicip" {
+  count               = "${var.gateways_count}"
+  name                = "gateway-west-publicip-${count.index + 1}"
   location            = "${azurerm_resource_group.west-rg.location}"
   resource_group_name = "${azurerm_resource_group.west-rg.name}"
   allocation_method   = "Static"
@@ -371,12 +414,20 @@ resource "azurerm_public_ip" "product-west-publicip" {
   }
 }
 
-resource "azurerm_virtual_machine" "product-west" {
-  count                 = "${var.products_count}"
-  name                  = "product-west-${count.index}"
+resource "cloudflare_record" "gateway-west-azure" {
+  count  = "${var.gateways_count}"
+  domain = "${var.cf_domain}"
+  name   = "gateway-west-azure-${count.index + 1}.${var.cf_domain}"
+  value  = "${azurerm_public_ip.gateway-west-publicip.*.ip_address[count.index]}"
+  type   = "A"
+}
+
+resource "azurerm_virtual_machine" "gateway-azure-west" {
+  count                 = "${var.gateways_count}"
+  name                  = "gateway-west-azure-${count.index}"
   location              = "${azurerm_resource_group.west-rg.location}"
   resource_group_name   = "${azurerm_resource_group.west-rg.name}"
-  network_interface_ids = ["${element(azurerm_network_interface.product-west-nic.*.id, count.index)}"]
+  network_interface_ids = ["${element(azurerm_network_interface.gateway-west-nic.*.id, count.index)}"]
   vm_size               = "${var.azure_client_machine_type}"
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
@@ -393,14 +444,14 @@ resource "azurerm_virtual_machine" "product-west" {
   }
 
   storage_os_disk {
-    name              = "product-west-disk-${count.index}"
+    name              = "gateway-west-disk-${count.index}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
-    computer_name  = "product-west-${count.index}"
+    computer_name  = "gateway-west-azure-${count.index}.${var.cf_domain}"
     admin_username = "${var.ssh_user}"
     admin_password = "${var.host_pw}"
   }
@@ -419,7 +470,7 @@ resource "azurerm_virtual_machine" "product-west" {
     #private_key = "${file(var.ssh_private_key_path)}"
     agent = false
     type  = "ssh"
-    host  = "${element(azurerm_public_ip.product-west-publicip.*.ip_address, count.index)}"
+    host  = "${element(azurerm_public_ip.gateway-west-publicip.*.ip_address, count.index)}"
   }
 
   provisioner "file" {
@@ -427,8 +478,7 @@ resource "azurerm_virtual_machine" "product-west" {
     destination = "/tmp/client.hcl"
   }
 
-
-  provisioner "file" {
+  /*provisioner "file" {
     source      = "../files/services/product_svc.hcl"
     destination = "/tmp/product_svc.hcl"
   }
@@ -436,7 +486,7 @@ resource "azurerm_virtual_machine" "product-west" {
   provisioner "file" {
     source      = "../files/services/product_pq.hcl"
     destination = "/tmp/product_pq.hcl"
-  }
+  }*/
 
   provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
@@ -466,12 +516,13 @@ resource "azurerm_virtual_machine" "product-west" {
   provisioner "remote-exec" {
     inline = [
       "${var.install_consul}",
+      "${local.copy_cert_and_key}",
       "${var.set_consul_client_conf}",
-      "${var.set_consul_product_conf}",
+      //"${var.set_consul_product_conf}",
       "${var.install_envconsul}",
       "${var.use_dnsmasq}",
-      "${var.install_product_and_proxy}"
-      #"${var.sync_envoy}",
+      //"${var.install_product_and_proxy}"
+      "${var.sync_envoy}",
     ]
   }
 }

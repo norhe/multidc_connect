@@ -39,7 +39,7 @@ resource "google_compute_firewall" "allow-consul" {
 
   allow {
     protocol = "tcp"
-    ports    = ["8200", "8300", "8301", "8302", "8500"]
+    ports    = ["8200", "8300", "8301", "8302", "8500", "8600"]
   }
 }
 
@@ -49,7 +49,7 @@ resource "google_compute_firewall" "allow-consul-wan-east" {
 
   allow {
     protocol = "udp"
-    ports    = ["8301", "8302"]
+    ports    = ["8301", "8302", "8600"]
   }
 }
 
@@ -129,9 +129,9 @@ resource "azurerm_network_security_group" "west-sg" {
     priority                   = 1001
     direction                  = "Inbound"
     access                     = "Allow"
-    protocol                   = "Tcp"
+    protocol                   = "*"
     source_port_range          = "*"
-    destination_port_ranges    = ["22", "8300", "8302"]
+    destination_port_ranges    = ["22", "8300-8302", "8500", "8600"]
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -151,9 +151,9 @@ resource "azurerm_network_security_group" "east-sg" {
     priority                   = 1001
     direction                  = "Inbound"
     access                     = "Allow"
-    protocol                   = "Tcp"
+    protocol                   = "*"
     source_port_range          = "*"
-    destination_port_ranges    = ["22", "8300", "8302"]
+    destination_port_ranges    = ["22", "8300-8302", "8500", "8600"]
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }

@@ -10,7 +10,7 @@ Description=Consul Proxy
 After=network.target
 [Service]
 Type=simple
-User=ubuntu
+User=consul
 ExecStart=/usr/local/bin/consul connect proxy -sidecar-for $SERVICE
 Restart=always
 SyslogIdentifier=consul_proxy

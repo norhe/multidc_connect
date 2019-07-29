@@ -29,7 +29,7 @@ Description=Envoy Proxy
 After=network.target
 [Service]
 Type=simple
-User=ubuntu
+User=consul
 ExecStart=/usr/local/bin/envoy --config-path /etc/envoy/envoy.conf
 Restart=always
 [Install]
