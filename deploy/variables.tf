@@ -187,8 +187,9 @@ variable "install_consul" {
   description = "The command to pass to the provisioner to install Hashicorp software"
   default     = <<-COMMAND
       sleep 30
-      cp /tmp/terraform_* ~/terrascript.sh
-      DEBIAN_FRONTEND=noninteractive sudo apt-get update
+      cp /tmp/terraform_* ~/terrascript.sh # debugging purposes
+      # use locally built consul binary due to bug
+      /*DEBIAN_FRONTEND=noninteractive sudo apt-get update
       DEBIAN_FRONTEND=noninteractive sudo apt-get install -y python3-pip jq
       pip3 install botocore boto3
       sudo mkdir ~/.aws && sudo cp -r /tmp/credentials ~/.aws/credentials
@@ -196,7 +197,8 @@ variable "install_consul" {
       #sudo -E python3 hashinstaller/install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True
       sudo -E python3 hashinstaller/install.py -p consul -v 1.6.0 -loc 's3://hc-enterprise-binaries' -ie True -of 'consul-enterprise_1.6.0+prem-beta3_linux_amd64.zip'
       sudo rm -rf ~/.aws
-      rm /tmp/credentials
+      rm /tmp/credentials*/
+      sudo -E python3 hashinstaller/install.py -p consul -al /tmp/consul.zip
       sleep 15
   COMMAND
 }
@@ -306,6 +308,17 @@ variable "install_mongodb_and_proxy" {
   COMMAND
 }
 
+variable "install_gateway_proxy" {
+  default = <<-COMMAND
+      sudo bash /tmp/install_envoy.sh mesh-gateway
+      # test consul proxy instead of Envoy
+      sudo systemctl disable envoy_proxy
+      sudo systemctl stop envoy_proxy 
+      sudo bash /tmp/install_gateway.sh
+      sleep 10
+  COMMAND
+}
+
 variable "install_product_and_proxy" {
   default = <<-COMMAND
       git clone https://github.com/norhe/product-service.git
@@ -343,6 +356,28 @@ variable "change_adver_addr_google" {
   default = <<-COMMAND
       echo "advertise_addr_wan = \"$(curl -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip)\"" | sudo tee /etc/consul/advertise_addr.hcl
       echo "translate_wan_addrs = true" | sudo tee -a /etc/consul/advertise_addr.hcl 
+  COMMAND
+}
+
+variable "create_mesh_command_azure" {
+  default = <<-COMMAND
+      DC="$(curl http://127.0.0.1:8500/v1/catalog/node/$(hostname) | jq .Node.Datacenter)"
+      EXT_ADDR=$(curl -H Metadata:true 'http://169.254.169.254/metadata/instance?api-version=2019-06-04' |jq .network.interface[0].ipv4.ipAddress[0].publicIpAddress)
+      printf 'consul connect envoy -mesh-gateway -register \
+          -service "gateway-%s" \
+          -address "{{ GetPrivateIP }}:2000" \
+          -wan-address "%s:3000"' $DC $EXT_ADDR | sudo tee /etc/consul/run_proxy.sh
+  COMMAND
+}
+
+variable "create_mesh_command_google" {
+  default = <<-COMMAND
+      DC="$(curl http://127.0.0.1:8500/v1/catalog/node/$(hostname) | jq -r .Node.Datacenter)"
+      EXT_ADDR=$(curl -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip)
+      printf 'consul connect envoy -mesh-gateway -register \
+          -service "gateway-%s" \
+          -address "{{ GetPrivateIP }}:2000" \
+          -wan-address "%s:3000"' $DC $EXT_ADDR | sudo tee /etc/consul/run_proxy.sh
   COMMAND
 }
 
@@ -394,10 +429,11 @@ output "server_ips_west" {
 ## locals
 locals {
   copy_cert_and_key = <<-COMMAND
-    echo \"${file(var.cert_file_contents)}\" | sudo tee ${var.cert_file}
+    /*echo \"${file(var.cert_file_contents)}\" | sudo tee ${var.cert_file}
     echo \"${file(var.key_file_contents)}\" | sudo tee ${var.key_file}
     sudo chown root:root ${var.key_file}
     sudo chmod 0600 ${var.key_file}
-    echo "Uploaded cert and key to ${var.cert_file} and ${var.key_file}"
+    echo "Uploaded cert and key to ${var.cert_file} and ${var.key_file}"*/
+    echo "skipping key copy"
   COMMAND
 }

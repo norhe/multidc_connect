@@ -30,7 +30,7 @@ After=network.target
 [Service]
 Type=simple
 User=consul
-ExecStart=/usr/local/bin/envoy --config-path /etc/envoy/envoy.conf
+ExecStart=/usr/local/bin/envoy --config-path /etc/envoy/envoy.conf --max-obj-name-len 256
 Restart=always
 [Install]
 WantedBy=multi-user.target

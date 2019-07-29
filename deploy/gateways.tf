@@ -67,16 +67,6 @@ resource "google_compute_instance" "gateway-east" {
     destination = "/tmp/client.hcl"
   }
 
-  /*provisioner "file" {
-    source      = "../files/services/product_svc.hcl"
-    destination = "/tmp/product_svc.hcl"
-  }
-
-  provisioner "file" {
-    source      = "../files/services/product_pq.hcl"
-    destination = "/tmp/product_pq.hcl"
-  }*/
-
   provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
     destination = "/tmp/use_dnsmasq.sh"
@@ -102,16 +92,24 @@ resource "google_compute_instance" "gateway-east" {
     destination = "/tmp/install_consul_proxy.sh"
   }
 
+  provisioner "file" {
+    source      = "../files/install_gateway.sh"
+    destination = "/tmp/install_gateway.sh"
+  }
+
+  provisioner "file" {
+    source      = "../files/consul.zip"
+    destination = "/tmp/consul.zip"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "${var.install_consul}",
       "${local.copy_cert_and_key}",
       "${var.set_consul_client_conf}",
-      #"${var.set_consul_product_conf}",
       "${var.install_envconsul}",
       "${var.use_dnsmasq}",
-      #"${var.install_product_and_proxy}"
-      #"${var.install_gateway}",
+      "${var.install_gateway_proxy}",
       "${var.sync_envoy}",
     ]
   }
@@ -179,20 +177,9 @@ resource "google_compute_instance" "gateway-west" {
   }
 
   provisioner "file" {
-    #source      = "../files/gce-client-west.hcl"
     content     = "${data.template_file.gce-client-west.rendered}"
     destination = "/tmp/client.hcl"
   }
-
-  /*provisioner "file" {
-    source      = "../files/services/product_svc.hcl"
-    destination = "/tmp/product_svc.hcl"
-  }
-
-  provisioner "file" {
-    source      = "../files/services/product_pq.hcl"
-    destination = "/tmp/product_pq.hcl"
-  }*/
 
   provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
@@ -219,16 +206,25 @@ resource "google_compute_instance" "gateway-west" {
     destination = "/tmp/install_consul_proxy.sh"
   }
 
+  provisioner "file" {
+    source      = "../files/install_gateway.sh"
+    destination = "/tmp/install_gateway.sh"
+  }
+
+  provisioner "file" {
+    source      = "../files/consul.zip"
+    destination = "/tmp/consul.zip"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "${var.install_consul}",
       "${local.copy_cert_and_key}",
       "${var.set_consul_client_conf}",
-      //"${var.set_consul_product_conf}",
       "${var.install_envconsul}",
       "${var.use_dnsmasq}",
-      //"${var.install_product_and_proxy}"
-      "${var.sync_envoy}"
+      "${var.install_gateway_proxy}",
+      "${var.sync_envoy}",
     ]
   }
 }
@@ -331,17 +327,6 @@ resource "azurerm_virtual_machine" "gateways-azure-east" {
     destination = "/tmp/client.hcl"
   }
 
-
-  /*provisioner "file" {
-    source      = "../files/services/product_svc.hcl"
-    destination = "/tmp/product_svc.hcl"
-  }
-
-  provisioner "file" {
-    source      = "../files/services/product_pq.hcl"
-    destination = "/tmp/product_pq.hcl"
-  }*/
-
   provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
     destination = "/tmp/use_dnsmasq.sh"
@@ -367,15 +352,24 @@ resource "azurerm_virtual_machine" "gateways-azure-east" {
     destination = "/tmp/install_consul_proxy.sh"
   }
 
+  provisioner "file" {
+    source      = "../files/install_gateway.sh"
+    destination = "/tmp/install_gateway.sh"
+  }
+
+  provisioner "file" {
+    source      = "../files/consul.zip"
+    destination = "/tmp/consul.zip"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "${var.install_consul}",
       "${local.copy_cert_and_key}",
       "${var.set_consul_client_conf}",
-      //"${var.set_consul_product_conf}",
       "${var.install_envconsul}",
       "${var.use_dnsmasq}",
-      //"${var.install_product_and_proxy}"
+      "${var.install_gateway_proxy}",
       "${var.sync_envoy}",
     ]
   }
@@ -424,7 +418,7 @@ resource "cloudflare_record" "gateway-west-azure" {
 
 resource "azurerm_virtual_machine" "gateway-azure-west" {
   count                 = "${var.gateways_count}"
-  name                  = "gateway-west-azure-${count.index}"
+  name                  = "gateway-west-azure-${count.index+1}"
   location              = "${azurerm_resource_group.west-rg.location}"
   resource_group_name   = "${azurerm_resource_group.west-rg.name}"
   network_interface_ids = ["${element(azurerm_network_interface.gateway-west-nic.*.id, count.index)}"]
@@ -444,14 +438,14 @@ resource "azurerm_virtual_machine" "gateway-azure-west" {
   }
 
   storage_os_disk {
-    name              = "gateway-west-disk-${count.index}"
+    name              = "gateway-west-disk-${count.index + 1}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
-    computer_name  = "gateway-west-azure-${count.index}.${var.cf_domain}"
+    computer_name  = "gateway-west-azure-${count.index + 1}.${var.cf_domain}"
     admin_username = "${var.ssh_user}"
     admin_password = "${var.host_pw}"
   }
@@ -478,16 +472,6 @@ resource "azurerm_virtual_machine" "gateway-azure-west" {
     destination = "/tmp/client.hcl"
   }
 
-  /*provisioner "file" {
-    source      = "../files/services/product_svc.hcl"
-    destination = "/tmp/product_svc.hcl"
-  }
-
-  provisioner "file" {
-    source      = "../files/services/product_pq.hcl"
-    destination = "/tmp/product_pq.hcl"
-  }*/
-
   provisioner "file" {
     source      = "../files/use_dnsmasq.sh"
     destination = "/tmp/use_dnsmasq.sh"
@@ -513,15 +497,24 @@ resource "azurerm_virtual_machine" "gateway-azure-west" {
     destination = "/tmp/install_consul_proxy.sh"
   }
 
+  provisioner "file" {
+    source      = "../files/install_gateway.sh"
+    destination = "/tmp/install_gateway.sh"
+  }
+
+  provisioner "file" {
+    source      = "../files/consul.zip"
+    destination = "/tmp/consul.zip"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "${var.install_consul}",
       "${local.copy_cert_and_key}",
       "${var.set_consul_client_conf}",
-      //"${var.set_consul_product_conf}",
       "${var.install_envconsul}",
       "${var.use_dnsmasq}",
-      //"${var.install_product_and_proxy}"
+      "${var.install_gateway_proxy}",
       "${var.sync_envoy}",
     ]
   }
