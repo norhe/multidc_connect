@@ -21,6 +21,7 @@ resource "google_compute_instance" "gateway-east" {
   hostname     = "gateway-east-google-${count.index + 1}.${var.cf_domain}"
   machine_type = "${var.google_client_machine_type}"
   zone         = "${data.google_compute_zones.east-azs.names[count.index]}"
+  can_ip_forward = true
 
   tags = [
     "consul-east-dc",
@@ -110,7 +111,7 @@ resource "google_compute_instance" "gateway-east" {
       "${var.install_envconsul}",
       "${var.use_dnsmasq}",
       "${var.install_gateway_proxy}",
-      "${var.sync_envoy}",
+      #"${var.sync_envoy}",
     ]
   }
 }
@@ -136,6 +137,8 @@ resource "google_compute_instance" "gateway-west" {
   hostname     = "gateway-west-google${count.index + 1}.${var.cf_domain}"
   machine_type = "${var.google_client_machine_type}"
   zone         = "${data.google_compute_zones.west-azs.names[count.index]}"
+
+  can_ip_forward = true
 
   tags = [
     "consul-west-dc",
@@ -224,7 +227,7 @@ resource "google_compute_instance" "gateway-west" {
       "${var.install_envconsul}",
       "${var.use_dnsmasq}",
       "${var.install_gateway_proxy}",
-      "${var.sync_envoy}",
+      #"${var.sync_envoy}",
     ]
   }
 }
@@ -237,6 +240,7 @@ resource "azurerm_network_interface" "gateway-east-nic" {
   location                  = "${azurerm_resource_group.east-rg.location}"
   resource_group_name       = "${azurerm_resource_group.east-rg.name}"
   network_security_group_id = "${azurerm_network_security_group.east-sg.id}"
+  enable_ip_forwarding      = true
 
   ip_configuration {
     name                          = "gateway-east-NicConfiguration-${count.index + 1}"
@@ -370,7 +374,7 @@ resource "azurerm_virtual_machine" "gateways-azure-east" {
       "${var.install_envconsul}",
       "${var.use_dnsmasq}",
       "${var.install_gateway_proxy}",
-      "${var.sync_envoy}",
+      #"${var.sync_envoy}",
     ]
   }
 }
@@ -382,6 +386,7 @@ resource "azurerm_network_interface" "gateway-west-nic" {
   location                  = "${azurerm_resource_group.west-rg.location}"
   resource_group_name       = "${azurerm_resource_group.west-rg.name}"
   network_security_group_id = "${azurerm_network_security_group.west-sg.id}"
+  enable_ip_forwarding      = true
 
   ip_configuration {
     name                          = "gateway-west-NicConfiguration-${count.index + 1}"
@@ -515,7 +520,7 @@ resource "azurerm_virtual_machine" "gateway-azure-west" {
       "${var.install_envconsul}",
       "${var.use_dnsmasq}",
       "${var.install_gateway_proxy}",
-      "${var.sync_envoy}",
+      //"${var.sync_envoy}",
     ]
   }
 }

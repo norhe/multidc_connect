@@ -25,7 +25,7 @@ resource "google_compute_firewall" "gcp-allow-traffic" {
 
   allow {
     protocol = "tcp"
-    ports    = ["22", "80", "443", "8080", "8300", "8302"]
+    ports    = ["22", "80", "443", "8080", "8300", "8302", "2000", "19000"]
   }
 
   source_ranges = [
@@ -39,7 +39,7 @@ resource "google_compute_firewall" "allow-consul" {
 
   allow {
     protocol = "tcp"
-    ports    = ["8200", "8300", "8301", "8302", "8500", "8600"]
+    ports    = ["8200", "8300", "8301", "8302", "8500", "8600", "19000", "2000"]
   }
 }
 
@@ -49,8 +49,48 @@ resource "google_compute_firewall" "allow-consul-wan-east" {
 
   allow {
     protocol = "udp"
-    ports    = ["8301", "8302", "8600"]
+    ports    = ["8301", "8302", "8600", "2000", "19000"]
   }
+}
+
+#13.64.159.239
+
+resource "google_compute_firewall" "allow-tunnel" {
+  name    = "tunnel"
+  network = "${google_compute_network.app_network.self_link}"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["0-65535"]
+  }
+
+  allow {
+    protocol = "udp"
+    ports    = ["0-65535"]
+  }
+
+  source_ranges = [
+    "13.64.159.239/32", "13.82.51.11/32"
+  ]
+}
+
+resource "google_compute_firewall" "allow-tunnel-1" {
+  name    = "tunnel-1"
+  network = "${google_compute_network.app_network.self_link}"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["0-65535"]
+  }
+
+  allow {
+    protocol = "udp"
+    ports    = ["0-65535"]
+  }
+
+  source_ranges = [
+    "10.1.1.0/24", "10.1.1.0/24"
+  ]
 }
 
 resource "google_compute_firewall" "allow-internal" {
@@ -131,8 +171,33 @@ resource "azurerm_network_security_group" "west-sg" {
     access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
-    destination_port_ranges    = ["22", "8300-8302", "8500", "8600"]
+    destination_port_ranges    = ["22", "8300-8302", "8500", "8600", "2000"]
     source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "from-google"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    #source_address_prefixes    = ["10.3.0.0/16", "10.4.0.0/16"]
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "tunnel"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "35.185.52.194"
     destination_address_prefix = "*"
   }
 
@@ -153,8 +218,32 @@ resource "azurerm_network_security_group" "east-sg" {
     access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
-    destination_port_ranges    = ["22", "8300-8302", "8500", "8600"]
+    destination_port_ranges    = ["22", "8300-8302", "8500", "8600", "2000"]
     source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "tunnel"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "35.185.52.194"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "from-google"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefixes    = ["10.3.0.0/16", "10.4.0.0/16"]
     destination_address_prefix = "*"
   }
 
@@ -163,5 +252,18 @@ resource "azurerm_network_security_group" "east-sg" {
   #}
 }
 
-## VPN
+resource "google_compute_route" "gwest_to_awest" {
+  name        = "network-route"
+  dest_range  = "10.1.1.0/24"
+  network     = "${google_compute_network.app_network.name}"
+  next_hop_instance = "${google_compute_instance.gateway-west[0].self_link}"
+  priority    = 100
+}
 
+resource "google_compute_route" "gwest_to_aeast" {
+  name        = "network-route2"
+  dest_range  = "10.2.1.0/24"
+  network     = "${google_compute_network.app_network.name}"
+  next_hop_instance = "${google_compute_instance.gateway-west[0].self_link}"
+  priority    = 100
+}

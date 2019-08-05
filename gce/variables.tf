@@ -11,16 +11,6 @@ variable "aws_credentials_path" {
   description = "Private key to use for provisioning"
 }
 
-variable "aws_key" {
-  description = "The key data to use when downloading enterprise tools"
-  default     = "Don't commit me to src control!"
-}
-
-variable "aws_key_id" {
-  description = "The key id to use when downloading enterprise tools"
-  default     = "Don't commit me to src control!"
-}
-
 variable "ssh_user" {
   description = "Username of ssh user created with the ssh_key_data key"
 }

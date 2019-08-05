@@ -1,5 +1,10 @@
 #! /bin/bash
 
+sudo apt-get 
+
+DEBIAN_FRONTEND=noninteractive sudo apt-get update 
+DEBIAN_FRONTEND=noninteractive sudo apt-get --yes install jq
+
 DC="$(curl http://127.0.0.1:8500/v1/catalog/node/$(hostname) | jq -r .Node.Datacenter)"
 
 curl -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/
@@ -13,7 +18,8 @@ fi
 printf '#! /bin/bash \n\nconsul connect envoy -mesh-gateway -register \
           -service "gateway-%s" \
           -address "{{ GetPrivateIP }}:2000" \
-          -wan-address "%s:3000"' $DC $EXT_ADDR | sudo tee /etc/consul/run_mesh_gateway.sh
+          -wan-address "%s:2000" \
+          -admin-bind="0.0.0.0:19000"' $DC $EXT_ADDR | sudo tee /etc/consul/run_mesh_gateway.sh
 
 sudo chmod a+x /etc/consul/run_mesh_gateway.sh
 

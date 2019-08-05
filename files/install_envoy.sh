@@ -18,7 +18,8 @@ sudo chmod a+x /tmp/envoy
 
 sudo mv /tmp/envoy /usr/local/bin/envoy
 
-consul connect envoy --admin-access-log-path /tmp/accesslog --bootstrap -sidecar-for $SERVICE >/tmp/envoy.conf
+# setting the bind address to 0.0.0.0 is a massive security risk.  Don't do this in production!
+consul connect envoy --admin-access-log-path /tmp/accesslog --bootstrap -admin-bind="0.0.0.0:19000" -sidecar-for $SERVICE >/tmp/envoy.conf
 
 sudo mkdir -p /etc/envoy
 sudo mv /tmp/envoy.conf /etc/envoy/envoy.conf
@@ -30,7 +31,7 @@ After=network.target
 [Service]
 Type=simple
 User=consul
-ExecStart=/usr/local/bin/envoy --config-path /etc/envoy/envoy.conf --max-obj-name-len 256
+ExecStart=/usr/local/bin/envoy --config-path /etc/envoy/envoy.conf --max-obj-name-len 256 --log-level debug
 Restart=always
 [Install]
 WantedBy=multi-user.target

@@ -14,6 +14,8 @@ ports            = {
     %{ endif ~}
 }
 
+enable_central_service_config = true
+
 # encryption
 %{ if gossip_encrypt_key != "null" }
 encrypt = "${gossip_encrypt_key}"
@@ -67,7 +69,8 @@ primary_datacenter = "${primary_datacenter}"
 
 enable_central_service_config = true
 config_entries = {
-    bootstrap = {
+    bootstrap = [
+      {
         kind = "proxy-defaults"
         name = "global"
         #config {
@@ -76,7 +79,44 @@ config_entries = {
         MeshGateway = {
           Mode = "local"
         }
-    }
+      },
+      #{
+      #  kind            = "service-resolver"
+      #  name            = "product"
+      #  connect_timeout = "3s"
+      #  failover = {
+      #    "*" = {
+      #      datacenters = [
+      #          "east-gcp","west-gcp", "east-azure", "west-azure" 
+      #      ]
+      #    }
+      #  }
+      #},
+      #{
+      #  kind            = "service-resolver"
+      #  name            = "listing"
+      #  connect_timeout = "3s"
+      #  failover = {
+      #    "*" = {
+      #      datacenters = [
+      #          "east-gcp","west-gcp", "east-azure", "west-azure" 
+      #      ]
+      #    }
+      #  }
+      #},
+      #{
+      #  kind            = "service-resolver"
+      #  name            = "mongodb"
+      #  connect_timeout = "3s"
+      #  failover = {
+      #    "*" = {
+      #      datacenters = [
+      #          "east-gcp","west-gcp", "east-azure", "west-azure" 
+      #      ]
+      #    }
+      #  }
+      #}
+    ]
 }
 
 %{ endif ~}

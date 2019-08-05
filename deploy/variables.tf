@@ -189,16 +189,16 @@ variable "install_consul" {
       sleep 30
       cp /tmp/terraform_* ~/terrascript.sh # debugging purposes
       # use locally built consul binary due to bug
-      /*DEBIAN_FRONTEND=noninteractive sudo apt-get update
-      DEBIAN_FRONTEND=noninteractive sudo apt-get install -y python3-pip jq
-      pip3 install botocore boto3
-      sudo mkdir ~/.aws && sudo cp -r /tmp/credentials ~/.aws/credentials
+      DEBIAN_FRONTEND=noninteractive sudo apt-get update
+      DEBIAN_FRONTEND=noninteractive sudo apt-get install -y python3-pip jq git
+      #pip3 install botocore boto3
+      #sudo mkdir ~/.aws && sudo cp -r /tmp/credentials ~/.aws/credentials
       git clone https://github.com/norhe/hashinstaller.git
       #sudo -E python3 hashinstaller/install.py -p consul -loc 's3://hc-enterprise-binaries' -ie True
-      sudo -E python3 hashinstaller/install.py -p consul -v 1.6.0 -loc 's3://hc-enterprise-binaries' -ie True -of 'consul-enterprise_1.6.0+prem-beta3_linux_amd64.zip'
-      sudo rm -rf ~/.aws
-      rm /tmp/credentials*/
-      sudo -E python3 hashinstaller/install.py -p consul -al /tmp/consul.zip
+      #sudo -E python3 hashinstaller/install.py -p consul -v 1.6.0 -loc 's3://hc-enterprise-binaries' -ie True -of 'consul-enterprise_1.6.0+prem-beta3_linux_amd64.zip'
+      #sudo rm -rf ~/.aws
+      #rm /tmp/credentials
+      sudo -E python3 hashinstaller/install.py -p consul -loc http://35.196.222.29:443
       sleep 15
   COMMAND
 }
@@ -289,10 +289,10 @@ variable "install_web_client_and_proxy" {
       sudo bash simple-client/install/install.sh
       sudo bash /tmp/install_envoy.sh web_client
       # test consul proxy instead of Envoy
-      sudo systemctl disable envoy_proxy
-      sudo systemctl stop envoy_proxy # bug with envoy and prepared queries so disable for now
-      sudo bash /tmp/install_consul_proxy.sh web_client
-      sleep 120 # give time for the prepared queries to be created
+      #sudo systemctl disable envoy_proxy
+      #sudo systemctl stop envoy_proxy # bug with envoy and prepared queries so disable for now
+      #sudo bash /tmp/install_consul_proxy.sh web_client
+      sleep 10 # give time for the prepared queries to be created
   COMMAND
 }
 
@@ -301,17 +301,16 @@ variable "install_mongodb_and_proxy" {
       sudo bash /tmp/install_mongodb.sh
       sudo bash /tmp/install_envoy.sh mongodb
       # test consul proxy instead of Envoy
-      sudo systemctl disable envoy_proxy
-      sudo systemctl stop envoy_proxy # bug with envoy and prepared queries so disable for now
-      sudo bash /tmp/install_consul_proxy.sh mongodb
-      sleep 120 # give time for the prepared queries to be created
+      #sudo systemctl disable envoy_proxy
+      #sudo systemctl stop envoy_proxy # bug with envoy and prepared queries so disable for now
+      #sudo bash /tmp/install_consul_proxy.sh mongodb
+      sleep 10 # give time for the prepared queries to be created
   COMMAND
 }
 
 variable "install_gateway_proxy" {
   default = <<-COMMAND
       sudo bash /tmp/install_envoy.sh mesh-gateway
-      # test consul proxy instead of Envoy
       sudo systemctl disable envoy_proxy
       sudo systemctl stop envoy_proxy 
       sudo bash /tmp/install_gateway.sh
@@ -325,10 +324,10 @@ variable "install_product_and_proxy" {
       sudo bash product-service/install/install.sh
       sudo bash /tmp/install_envoy.sh product
       # test consul proxy instead of Envoy
-      sudo systemctl disable envoy_proxy
-      sudo systemctl stop envoy_proxy # bug with envoy and prepared queries so disable for now
-      sudo bash /tmp/install_consul_proxy.sh product
-      sleep 120 # give time for the prepared queries to be created
+      #sudo systemctl disable envoy_proxy
+      #sudo systemctl stop envoy_proxy # bug with envoy and prepared queries so disable for now
+      #sudo bash /tmp/install_consul_proxy.sh product
+      sleep 10 # give time for the prepared queries to be created
   COMMAND
 }
 
@@ -338,10 +337,10 @@ variable "install_listing_and_proxy" {
       sudo bash listing-service/install/install.sh
       sudo bash /tmp/install_envoy.sh listing
       # test consul proxy instead of Envoy
-      sudo systemctl disable envoy_proxy
-      sudo systemctl stop envoy_proxy # bug with envoy and prepared queries so disable for now
-      sudo bash /tmp/install_consul_proxy.sh listing
-      sleep 120 # give time for the prepared queries to be created
+      #sudo systemctl disable envoy_proxy
+      #sudo systemctl stop envoy_proxy # bug with envoy and prepared queries so disable for now
+      #sudo bash /tmp/install_consul_proxy.sh listing
+      sleep 10 # give time for the prepared queries to be created
   COMMAND
 }
 
@@ -366,7 +365,7 @@ variable "create_mesh_command_azure" {
       printf 'consul connect envoy -mesh-gateway -register \
           -service "gateway-%s" \
           -address "{{ GetPrivateIP }}:2000" \
-          -wan-address "%s:3000"' $DC $EXT_ADDR | sudo tee /etc/consul/run_proxy.sh
+          -wan-address "%s:2000"' $DC $EXT_ADDR | sudo tee /etc/consul/run_proxy.sh
   COMMAND
 }
 
@@ -377,7 +376,7 @@ variable "create_mesh_command_google" {
       printf 'consul connect envoy -mesh-gateway -register \
           -service "gateway-%s" \
           -address "{{ GetPrivateIP }}:2000" \
-          -wan-address "%s:3000"' $DC $EXT_ADDR | sudo tee /etc/consul/run_proxy.sh
+          -wan-address "%s:2000"' $DC $EXT_ADDR | sudo tee /etc/consul/run_proxy.sh
   COMMAND
 }
 
@@ -429,11 +428,6 @@ output "server_ips_west" {
 ## locals
 locals {
   copy_cert_and_key = <<-COMMAND
-    /*echo \"${file(var.cert_file_contents)}\" | sudo tee ${var.cert_file}
-    echo \"${file(var.key_file_contents)}\" | sudo tee ${var.key_file}
-    sudo chown root:root ${var.key_file}
-    sudo chmod 0600 ${var.key_file}
-    echo "Uploaded cert and key to ${var.cert_file} and ${var.key_file}"*/
     echo "skipping key copy"
   COMMAND
 }
